@@ -38,20 +38,42 @@ Paid features may only cover hosted infrastructure costs:
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for technical details.
 
-## 📋 Getting Started
+## 📋 Getting Started (Local Dev)
+
+### Prerequisites
+- Docker + Docker Compose
+- All gratis repos cloned as siblings (see repo map above)
+
+### Quick Start
 
 ```bash
-# Install the core cache manager
-wp plugin install cache-manager --activate
+cd gratis-suite
+./setup.sh
+```
 
-# Install the theme
-wp theme install gratis-theme --activate
+This starts WordPress 6.7 (PHP 8.3) + MariaDB 11 + Redis 7 with all ecosystem repos mounted live.
 
-# Install the builder
-wp plugin install gratis-builder --activate
+| Service | URL |
+|---------|-----|
+| Site | http://localhost:8080 |
+| Admin | http://localhost:8080/wp-admin |
+| Redis | localhost:6380 |
 
-# Check system capabilities
-wp gratis-cache status
+**Credentials:** admin / admin
+
+### WP-CLI
+
+```bash
+docker compose run --rm wpcli theme list
+docker compose run --rm wpcli plugin list
+docker compose run --rm wpcli gratis-cache status
+```
+
+### Stop / Reset
+
+```bash
+docker compose down          # stop
+docker compose down -v       # stop + delete data
 ```
 
 ## License
