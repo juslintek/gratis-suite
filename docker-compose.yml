@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wordpress:6.7-php8.3-apache
+    build: .
     ports:
       - "8080:80"
     environment:
@@ -14,6 +14,7 @@ services:
         define('WP_DEBUG_DISPLAY', true);
         define('SCRIPT_DEBUG', true);
         define('WP_ENVIRONMENT_TYPE', 'local');
+        define('WP_REDIS_HOST', 'redis');
     volumes:
       - wp_data:/var/www/html
       # Gratis ecosystem mounts
@@ -26,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
 
   db:
@@ -51,7 +54,9 @@ services:
     restart: unless-stopped
 
   wpcli:
-    image: wordpress:cli-php8.3
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
     user: "33:33"
     environment:
       WORDPRESS_DB_HOST: db
