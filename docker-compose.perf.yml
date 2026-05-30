@@ -1,0 +1,77 @@
+services:
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile.franken
+    ports:
+      - "8443:443"
+      - "8080:80"
+    environment:
+      SERVER_NAME: ":80"
+    volumes:
+      - wp_app:/app
+      # Gratis ecosystem mounts
+      - ../cache-manager:/app/wp-content/plugins/cache-manager
+      - ../gratis-builder:/app/wp-content/plugins/gratis-builder
+      - ../gratis-backup:/app/wp-content/plugins/gratis-backup
+      - ../gratis-db:/app/wp-content/plugins/gratis-db
+      - ../gratis-ai:/app/wp-content/plugins/gratis-ai
+      - ../gratis-fleet:/app/wp-content/plugins/gratis-fleet
+      - ../gratis-theme:/app/wp-content/themes/gratis-theme
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: mariadb:11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru --save ""
+    restart: unless-stopped
+
+  wpcli:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    user: "0:0"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wp_app:/var/www/html
+      - ../cache-manager:/var/www/html/wp-content/plugins/cache-manager
+      - ../gratis-builder:/var/www/html/wp-content/plugins/gratis-builder
+      - ../gratis-backup:/var/www/html/wp-content/plugins/gratis-backup
+      - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
+      - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
+      - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - cli
+    entrypoint: wp
+    command: "--info"
+
+volumes:
+  wp_app:
+  db_data:

@@ -26,6 +26,14 @@ wp gratis-cache scan-files --dir=/path/to/watch
 # History
 wp gratis-cache history tail        # Show recent cache + file events
 
+# Performance (free — WP Rocket charges $59/yr)
+wp gratis-cache critical-css        # Generate critical CSS for homepage
+wp gratis-cache critical-css <url>  # Generate for specific URL
+wp gratis-cache optimize-db         # Clean revisions, transients, spam, trash
+wp gratis-cache optimize-db --dry-run
+wp gratis-cache optimize-images     # Convert JPEG/PNG to WebP (local, no API)
+wp gratis-cache optimize-images --limit=200
+
 # Legacy (vlt-cache)
 wp vlt-cache status                 # Redis/OPcache/Nginx/Elementor status
 wp vlt-cache purge                  # Purge all
@@ -69,6 +77,28 @@ wp gratis-ai analyze               # AI analysis of site health + cache stats
 wp gratis-db status                 # SQLite availability, current DB, migration readiness
 wp gratis-db scan                   # Scan plugins/themes for SQLite compatibility
 wp gratis-db plan                   # Show migration plan (dry-run)
+```
+
+## gratis-fleet
+
+```bash
+# Fleet management
+wp gratis-fleet key                 # Show this site's fleet API key
+wp gratis-fleet add <url> <key>     # Add a site to the fleet
+wp gratis-fleet list                # List all fleet sites
+wp gratis-fleet status              # Check status of all sites
+wp gratis-fleet update-all          # Update plugins across all sites
+wp gratis-fleet purge-all           # Purge cache across all sites
+
+# Security (free — ManageWP charges $1/site/mo)
+wp gratis-fleet security            # Run security scan on this site
+
+# SEO (free — ManageWP charges $1/site/mo)
+wp gratis-fleet seo                 # Full site SEO audit
+wp gratis-fleet seo <url>           # Audit specific URL
+
+# Uptime (free — ManageWP charges $1/site/mo)
+wp gratis-fleet uptime              # Check uptime of all fleet sites
 ```
 
 ## REST API (cache-manager)

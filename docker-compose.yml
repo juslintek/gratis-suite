@@ -23,6 +23,7 @@ services:
       - ../gratis-backup:/var/www/html/wp-content/plugins/gratis-backup
       - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
       - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
+      - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
       - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
     depends_on:
       db:
@@ -71,6 +72,7 @@ services:
       - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
       - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
       - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
+      - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
     depends_on:
       db:
         condition: service_healthy
