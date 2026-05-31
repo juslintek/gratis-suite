@@ -24,6 +24,27 @@ services:
       - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
       - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
       - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
+      - ../gratis-forms:/var/www/html/wp-content/plugins/gratis-forms
+      - ../gratis-analytics:/var/www/html/wp-content/plugins/gratis-analytics
+      - ../gratis-automation:/var/www/html/wp-content/plugins/gratis-automation
+      - ../gratis-media:/var/www/html/wp-content/plugins/gratis-media
+      - ../gratis-crm:/var/www/html/wp-content/plugins/gratis-crm
+      - ../gratis-commerce:/var/www/html/wp-content/plugins/gratis-commerce
+      - ../gratis-tables:/var/www/html/wp-content/plugins/gratis-tables
+      - ../gratis-popup:/var/www/html/wp-content/plugins/gratis-popup
+      - ../gratis-social:/var/www/html/wp-content/plugins/gratis-social
+      - ../gratis-reviews:/var/www/html/wp-content/plugins/gratis-reviews
+      - ../gratis-seo:/var/www/html/wp-content/plugins/gratis-seo
+      - ../gratis-learn:/var/www/html/wp-content/plugins/gratis-learn
+      - ../gratis-booking:/var/www/html/wp-content/plugins/gratis-booking
+      - ../gratis-translate:/var/www/html/wp-content/plugins/gratis-translate
+      - ../gratis-access:/var/www/html/wp-content/plugins/gratis-access
+      - ../gratis-notify:/var/www/html/wp-content/plugins/gratis-notify
+      - ../gratis-project:/var/www/html/wp-content/plugins/gratis-project
+      - ../gratis-events:/var/www/html/wp-content/plugins/gratis-events
+      - ../gratis-invoice:/var/www/html/wp-content/plugins/gratis-invoice
+      - ../gratis-comply:/var/www/html/wp-content/plugins/gratis-comply
+      - ../gratis-affiliate:/var/www/html/wp-content/plugins/gratis-affiliate
       - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
     depends_on:
       db:
@@ -73,6 +94,27 @@ services:
       - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
       - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
       - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
+      - ../gratis-forms:/var/www/html/wp-content/plugins/gratis-forms
+      - ../gratis-analytics:/var/www/html/wp-content/plugins/gratis-analytics
+      - ../gratis-automation:/var/www/html/wp-content/plugins/gratis-automation
+      - ../gratis-media:/var/www/html/wp-content/plugins/gratis-media
+      - ../gratis-crm:/var/www/html/wp-content/plugins/gratis-crm
+      - ../gratis-commerce:/var/www/html/wp-content/plugins/gratis-commerce
+      - ../gratis-tables:/var/www/html/wp-content/plugins/gratis-tables
+      - ../gratis-popup:/var/www/html/wp-content/plugins/gratis-popup
+      - ../gratis-social:/var/www/html/wp-content/plugins/gratis-social
+      - ../gratis-reviews:/var/www/html/wp-content/plugins/gratis-reviews
+      - ../gratis-seo:/var/www/html/wp-content/plugins/gratis-seo
+      - ../gratis-learn:/var/www/html/wp-content/plugins/gratis-learn
+      - ../gratis-booking:/var/www/html/wp-content/plugins/gratis-booking
+      - ../gratis-translate:/var/www/html/wp-content/plugins/gratis-translate
+      - ../gratis-access:/var/www/html/wp-content/plugins/gratis-access
+      - ../gratis-notify:/var/www/html/wp-content/plugins/gratis-notify
+      - ../gratis-project:/var/www/html/wp-content/plugins/gratis-project
+      - ../gratis-events:/var/www/html/wp-content/plugins/gratis-events
+      - ../gratis-invoice:/var/www/html/wp-content/plugins/gratis-invoice
+      - ../gratis-comply:/var/www/html/wp-content/plugins/gratis-comply
+      - ../gratis-affiliate:/var/www/html/wp-content/plugins/gratis-affiliate
     depends_on:
       db:
         condition: service_healthy
