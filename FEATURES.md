@@ -89,3 +89,43 @@ Optional managed cloud services (backup storage, hosted AI, monitoring) may have
 ---
 
 *"I built this to give everyone powerful WordPress tools for free."*
+
+---
+
+## Phase 2 Plugins (NEW)
+
+| Plugin | Purpose | Replaces | Savings |
+|--------|---------|----------|---------|
+| gratis-learn | LMS: courses, lessons, quizzes, progress | LearnDash | $199/yr |
+| gratis-booking | Appointment scheduling + calendar | Amelia + Bookly | $89/yr |
+| gratis-translate | Multilingual content + hreflang | WPML + Polylang Pro | $99/yr |
+| gratis-access | Membership + content restriction | MemberPress | $179/yr |
+| gratis-notify | Self-hosted push notifications | OneSignal/PushEngage | $108/yr |
+| gratis-project | Project management + Kanban | Trello/Asana (SaaS) | $120/yr |
+
+## Complete Ecosystem (25 plugins)
+
+**Total annual savings per site: $3,000-5,000+**
+
+### All WP-CLI Namespaces:
+```
+wp gratis-cache      # Performance, cache, optimization
+wp gratis-backup     # Backups, scheduling, rotation
+wp gratis-ai         # AI content, analysis, abilities
+wp gratis-db         # SQLite mode, compatibility
+wp gratis-fleet      # Multi-site, security, SEO, uptime, webhooks
+wp gratis-forms      # Form builder, entries
+wp gratis-analytics  # Privacy-first analytics
+wp gratis-auto       # Workflow automation
+wp gratis-media      # Media folders, cleanup
+wp gratis-crm        # Contacts, campaigns
+wp gratis-commerce   # Products, orders
+wp gratis-tables     # Data tables, CSV import
+wp gratis-popup      # Conversion popups
+wp gratis-seo        # SEO audit, sitemap
+wp gratis-learn      # Courses, lessons, progress
+wp gratis-booking    # Services, appointments
+wp gratis-translate  # Languages, translations
+wp gratis-access     # Membership levels
+wp gratis-project    # Tasks, projects
+```
