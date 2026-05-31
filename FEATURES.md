@@ -129,3 +129,18 @@ wp gratis-translate  # Languages, translations
 wp gratis-access     # Membership levels
 wp gratis-project    # Tasks, projects
 ```
+
+## Phase 7 Plugins
+
+| Plugin | Purpose | Replaces | Savings |
+|--------|---------|----------|---------|
+| gratis-community | Social: profiles, activity, messaging, groups | BuddyPress/PeepSo | $299/yr |
+| gratis-cdn | Asset fingerprinting, CDN rewrite, preconnect | CDN plugins | $120/yr |
+| gratis-installer | One-click suite installer | — | — |
+| gratis-mail | SMTP + email logs + templates | WP Mail SMTP | $49/yr |
+| gratis-security | WAF + malware scanner + 2FA | Wordfence | $119/yr |
+| gratis-devtools | Staging + DB migrations | WP Engine | $240/yr |
+
+**Total ecosystem: 36 repos | 30+ plugins | 90+ WP-CLI commands | $5,000+/yr saved per site**
+
+**Performance: 15ms avg with 27 plugins active (9ms min)**
