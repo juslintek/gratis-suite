@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpredis/phpredis": "^6.1",
+        "awesome/simdjson_plus": "^1.0"
+    }
+}
