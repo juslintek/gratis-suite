@@ -32,7 +32,7 @@ docker compose run --rm wpcli theme activate gratis-theme
 
 # Activate plugins
 echo "Activating plugins..."
-docker compose run --rm wpcli plugin activate cache-manager || true
+docker compose run --rm wpcli plugin activate gratis-cache || true
 docker compose run --rm wpcli plugin activate gratis-builder || true
 
 echo ""

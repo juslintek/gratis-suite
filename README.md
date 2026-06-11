@@ -8,7 +8,7 @@
 
 | Plugin | Purpose | Replaces | Savings |
 |--------|---------|----------|---------|
-| [cache-manager](https://github.com/juslintek/cache-manager) | Page cache, Redis object cache, critical CSS, DB optimizer, image optimization, minification, heartbeat control, login protection, redirects, search index, horizontal scaling | WP Rocket + WP-Optimize + Perfmatters | $180/yr |
+| [gratis-cache](https://github.com/juslintek/gratis-cache) | Page cache, Redis object cache, critical CSS, DB optimizer, image optimization, minification, heartbeat control, login protection, redirects, search index, horizontal scaling | WP Rocket + WP-Optimize + Perfmatters | $180/yr |
 | [gratis-backup](https://github.com/juslintek/gratis-backup) | Stream-first backups, scheduled, rotation, pre-update snapshots | UpdraftPlus Pro | $70/yr |
 | [gratis-security](https://github.com/juslintek/gratis-security) | WAF rules, malware file scanner, TOTP 2FA | Wordfence | $119/yr |
 | [gratis-mail](https://github.com/juslintek/gratis-mail) | SMTP configuration, email logs, test/stats CLI | WP Mail SMTP | $49/yr |
@@ -108,7 +108,7 @@
 
 ```bash
 # Install the core suite
-wp plugin install cache-manager --activate
+wp plugin install gratis-cache --activate
 wp theme activate gratis-theme
 wp gratis-cache dropin install
 wp gratis-cache status

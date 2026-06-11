@@ -1,6 +1,6 @@
 # Gratis Suite — WP-CLI Command Reference
 
-## cache-manager
+## gratis-cache
 
 ```bash
 # Status & diagnostics
@@ -101,7 +101,7 @@ wp gratis-fleet seo <url>           # Audit specific URL
 wp gratis-fleet uptime              # Check uptime of all fleet sites
 ```
 
-## REST API (cache-manager)
+## REST API (gratis-cache)
 
 All endpoints require `manage_options` capability.
 
@@ -115,7 +115,7 @@ POST /wp-json/gratis-cache/v1/purge     # Purge all cache layers
 
 ```bash
 # Install everything
-wp plugin install cache-manager --activate
+wp plugin install gratis-cache --activate
 wp theme activate gratis-theme
 wp plugin activate gratis-builder gratis-backup gratis-ai gratis-db
 

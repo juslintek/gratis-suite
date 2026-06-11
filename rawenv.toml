@@ -1,0 +1,12 @@
+[project]
+name = "gratis-suite"
+
+[runtimes]
+php = "8.4"
+
+[services]
+mariadb = "11"
+redis = "7"
+
+[detect]
+auto = true
