@@ -1,0 +1,16 @@
+{
+  "name": "gratis-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fast headless end-to-end + smoke tests for the Gratis plugin suite (Playwright).",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "install:browser": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}
