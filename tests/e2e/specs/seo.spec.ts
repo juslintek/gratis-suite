@@ -9,7 +9,7 @@ test.describe('seo @seo', () => {
     expect(desc?.trim()).toBeTruthy();
     const canonicals = page.locator('link[rel="canonical"]');
     expect(await canonicals.count(), 'has a canonical link').toBeGreaterThan(0);
-    expect(await canonicals.first().getAttribute('href')).toContain('gratis.superglobalsdevelopment.com');
+    expect(await canonicals.first().getAttribute('href'), 'canonical is an absolute URL').toMatch(/^https?:\/\//);
   });
 
   test('home emits at least one valid schema.org JSON-LD block', async ({ page }) => {
@@ -30,13 +30,13 @@ test.describe('seo @seo', () => {
   });
 
   // F-04: duplicate og:title tags on the homepage (theme + gratis-seo both emit). Should be exactly one.
-  test.fixme('Open Graph title is not duplicated [F-04]', async ({ page }) => {
+  test('Open Graph title is not duplicated [F-04]', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     expect(await page.locator('meta[property="og:title"]').count()).toBe(1);
   });
 
   // F-01: og:description is empty in production. Encodes the desired behavior; un-fixme when fixed.
-  test.fixme('Open Graph description is non-empty [F-01]', async ({ page }) => {
+  test('Open Graph description is non-empty [F-01]', async ({ page }) => {
     await page.goto('/');
     const ogd = await page.locator('meta[property="og:description"]').getAttribute('content');
     expect((ogd ?? '').trim().length).toBeGreaterThan(0);

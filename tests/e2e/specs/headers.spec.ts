@@ -8,14 +8,14 @@ test.describe('headers / caching / hardening @headers', () => {
   });
 
   // F-02: gratis-security advertises security headers, but production omits them.
-  test.fixme('security headers present (X-Content-Type-Options + X-Frame-Options/CSP) [F-02]', async ({ request }) => {
+  test('security headers present (X-Content-Type-Options + X-Frame-Options/CSP) [F-02]', async ({ request }) => {
     const h = (await request.get('/')).headers();
     expect(h['x-content-type-options']).toBe('nosniff');
     expect(h['x-frame-options'] || h['content-security-policy']).toBeTruthy();
   });
 
   // F-03: X-Powered-By exposes the PHP version; hardening should remove it.
-  test.fixme('X-Powered-By is not exposed [F-03]', async ({ request }) => {
+  test('X-Powered-By is not exposed [F-03]', async ({ request }) => {
     const h = (await request.get('/')).headers();
     expect(h['x-powered-by']).toBeFalsy();
   });

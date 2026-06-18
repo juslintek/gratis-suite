@@ -52,3 +52,14 @@ Per-plugin observable expectations to grow toward "test everything":
 
 > "Test everything" is reached incrementally: each loop iteration converts ▢/⏳ items into
 > active specs as features deploy, and resolves ✗ findings. The suite is the source of truth.
+
+
+## Update 2026-06-18 — verified on local (BASE_URL=http://localhost:8080)
+
+E2E **19/19 green on local**, **12/19 on prod** (the 7 deltas = deploy backlog). Moves:
+- ✗→✓ (local) **F-01** og:description filled · **F-02** security headers present (X-Content-Type-Options,
+  X-Frame-Options, …) · **F-03** X-Powered-By removed · **F-04** og:title/canonical de-duplicated.
+- ⏳→✓ (local) **comply** banner + Consent Mode v2 default · **reviews** AggregateRating on `/reviews/`
+  · **social** `.gratis-share` on docs (needs `gratis_social_settings.post_types` to include `gratis_doc`).
+- These stay ⏳ on **production** until the plugin fixes are pushed + activated and the prod config
+  (gratis-security active, social post types, a Reviews page) is applied. See `docs/STATUS.md`.
