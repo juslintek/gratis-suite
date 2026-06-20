@@ -10,10 +10,10 @@ Target tested: `https://gratis.superglobalsdevelopment.com` (prod, **non-destruc
 
 | ID | Sev | Area / plugin | Finding | Status |
 |----|-----|---------------|---------|--------|
-| F-01 | Med | SEO (gratis-seo) | Homepage `og:description` is empty | ✅ fixed on local; ⏳ prod deploy |
-| F-02 | High | Security (gratis-security) | No security response headers served, though the plugin advertises "Security response headers (with optional CSP and HSTS)" | ✅ fixed on local (code OK; was inactive/cold-worker); ⏳ prod deploy + activate |
-| F-03 | Low | Hardening | `X-Powered-By: PHP/8.5.7` exposed (version disclosure) | ✅ fixed on local; ⏳ prod deploy |
-| F-04 | Low | SEO (gratis-seo / theme) | Duplicate `og:title` on the homepage (two tags) | ✅ fixed on local; ⏳ prod deploy |
+| F-01 | Med | SEO (gratis-seo) | Homepage `og:description` is empty | ✅ fixed + deployed to prod (E2E 19/19) |
+| F-02 | High | Security (gratis-security) | No security response headers served, though the plugin advertises "Security response headers (with optional CSP and HSTS)" | ✅ fixed + deployed (gratis-security activated on prod) |
+| F-03 | Low | Hardening | `X-Powered-By: PHP/8.5.7` exposed (version disclosure) | ✅ fixed + deployed to prod |
+| F-04 | Low | SEO (gratis-seo / theme) | Duplicate `og:title` on the homepage (two tags) | ✅ fixed + deployed to prod |
 | F-05 | Info | Suite-wide | 8 features implemented locally last session are **not deployed** to prod (see beads `gratis-cbd/mzc/dac/8tb/4qe/6m0/dx3/1yy`) | pending deploy |
 
 ## Detail

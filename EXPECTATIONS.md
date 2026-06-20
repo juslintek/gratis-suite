@@ -61,5 +61,6 @@ E2E **19/19 green on local**, **12/19 on prod** (the 7 deltas = deploy backlog).
   X-Frame-Options, …) · **F-03** X-Powered-By removed · **F-04** og:title/canonical de-duplicated.
 - ⏳→✓ (local) **comply** banner + Consent Mode v2 default · **reviews** AggregateRating on `/reviews/`
   · **social** `.gratis-share` on docs (needs `gratis_social_settings.post_types` to include `gratis_doc`).
-- These stay ⏳ on **production** until the plugin fixes are pushed + activated and the prod config
-  (gratis-security active, social post types, a Reviews page) is applied. See `docs/STATUS.md`.
+- **Deployed to production 2026-06-20**: code rsynced + 10 repos pushed; gratis-security activated,
+  gratis-social post types set, Reviews page created; container restarted. **Prod E2E now 19/19 green**
+  (matches local). Rollback snapshot: `/opt/gratis/backups/ht.sqlite.predeploy-20260620-153557`.

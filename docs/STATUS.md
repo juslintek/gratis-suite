@@ -4,9 +4,9 @@ One board for **what was planned, what's done, and what's left**, with links to 
 source-of-truth docs. Produced during the implement-loop run against local.
 
 ## Quick state
-- E2E (Playwright, `tests/e2e/`): **LOCAL 19/19 green** · **PROD 12/19** (7 fails = deploy backlog).
-- Findings **F-01–F-04: fixed + verified on local**, pending prod deploy.
-- The 8 feature fixes (prior session) + F-01–F-04 (this run): **committed locally, not pushed to prod**.
+- E2E (Playwright, `tests/e2e/`): **LOCAL 19/19 · PROD 19/19 green** (deployed 2026-06-20).
+- Findings **F-01–F-04: fixed, deployed, and verified on prod**.
+- All 10 plugin/theme repos pushed; fixes live on gratis.superglobalsdevelopment.com.
 
 ## Done ✅
 ### Workflow system — committed + pushed to gratis-suite (`5e451ab`)
@@ -28,10 +28,9 @@ Playwright E2E suite; `goals/` (TEST, IMPLEMENT-LOOP); `docs/` (FINDINGS, ADVICE
 - **security 2FA, commerce settings/webhook, forms conditional, crm broadcast, backup restore, db migration**: implemented + lint-clean last session (CLI/admin paths; not in the public E2E yet).
 
 ## Left ▢
-1. **Deploy to prod** (gated on your approval — `RULES.md` #8): push gratis-seo, gratis-theme,
-   gratis-security (+ the 8 prior-session plugins) and re-run E2E against prod → the 7 red specs
-   go green. Prod config also needed: **activate gratis-security**, set **gratis-social** post types
-   to include `gratis_doc`, and **create a Reviews page** with `[gratis-aggregate-rating]`.
+1. ✅ **Deploy to prod — DONE 2026-06-20**: code rsynced to the bind-mount + 10 repos pushed;
+   gratis-security activated, gratis-social post types set, Reviews page (id 123) created; container
+   restarted. **Prod E2E 19/19.** Rollback: `/opt/gratis/backups/ht.sqlite.predeploy-20260620-153557`.
 2. **gratis-theme PHPCS debt**: 16 pre-existing violations in `functions.php` (NOT from this change —
    my lines 24–32 are clean). Tracked as a bead.
 3. **Roadmap coverage** (`EXPECTATIONS.md` ▢): popups, analytics beacon, tables, translate,
