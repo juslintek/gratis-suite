@@ -10,37 +10,56 @@ cd "$(dirname "$0")"
 echo "Starting containers..."
 docker compose up -d
 
-# Wait for WordPress to be ready
+PORT="${PORT:-8080}"
+
+# Wait for WordPress to be ready (200, 301 canonical redirect, or 302 to install.php)
 echo "Waiting for WordPress..."
-until docker compose exec -T wordpress curl -sf http://localhost/ > /dev/null 2>&1; do
+ready=0
+for _ in $(seq 1 30); do
+  code=$(docker compose exec -T wordpress curl -sS -o /dev/null -w "%{http_code}" -H "Host: localhost:${PORT}" http://localhost/ 2>/dev/null || echo "000")
+  if [ "$code" = "200" ] || [ "$code" = "301" ] || [ "$code" = "302" ]; then
+    ready=1
+    break
+  fi
   sleep 2
 done
+if [ "$ready" -ne 1 ]; then
+  echo "ERROR: WordPress did not become ready within 60s (last HTTP status: ${code})" >&2
+  exit 1
+fi
 
-# Install WordPress
-echo "Installing WordPress..."
-docker compose run --rm wpcli core install \
-  --url="http://localhost:8080" \
-  --title="Gratis Dev" \
-  --admin_user=admin \
-  --admin_password=admin \
-  --admin_email=dev@gratis.local \
-  --skip-email
+wp_exec() {
+  docker compose exec -T wordpress wp --allow-root --path=/app/public "$@"
+}
+
+# Install WordPress (idempotent)
+if ! wp_exec core is-installed >/dev/null 2>&1; then
+  echo "Installing WordPress..."
+  wp_exec core install \
+    --url="http://localhost:${PORT}" \
+    --title="Gratis Dev" \
+    --admin_user=admin \
+    --admin_password=admin \
+    --admin_email=dev@gratis.local \
+    --skip-email
+else
+  echo "WordPress already installed — skipping core install."
+fi
 
 # Activate theme
 echo "Activating gratis-theme..."
-docker compose run --rm wpcli theme activate gratis-theme
+wp_exec theme activate gratis-theme
 
-# Activate plugins
+# Activate core plugins
 echo "Activating plugins..."
-docker compose run --rm wpcli plugin activate gratis-cache || true
-docker compose run --rm wpcli plugin activate gratis-builder || true
+wp_exec plugin activate gratis-cache gratis-builder
 
 echo ""
 echo "✅ Gratis Dev Environment Ready!"
-echo "   Site:  http://localhost:8080"
-echo "   Admin: http://localhost:8080/wp-admin"
+echo "   Site:  http://localhost:${PORT}"
+echo "   Admin: http://localhost:${PORT}/wp-admin"
 echo "   User:  admin / admin"
 echo ""
 echo "WP-CLI usage:"
-echo "   docker compose run --rm wpcli <command>"
-echo "   docker compose run --rm wpcli gratis-cache status"
+echo "   docker compose exec wordpress wp --allow-root <command>"
+echo "   docker compose exec wordpress wp --allow-root gratis-cache status"

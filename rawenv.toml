@@ -2,7 +2,7 @@
 name = "gratis-suite"
 
 [runtimes]
-php = "8.4"
+php = "8.5"
 
 [services]
 mariadb = "11"

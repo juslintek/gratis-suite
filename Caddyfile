@@ -6,6 +6,30 @@
 :80 {
 	root * /app/public
 	encode zstd gzip
-	try_files {path} {path}/index.php /index.php?{query}
-	php_server
+
+	@blocked_paths path /wp-content/database /wp-content/database/* /wp-content/debug.log /wp-config.php /wp-config-sample.php /xmlrpc.php
+	@uploads_php path_regexp (?i)^/wp-content/uploads/.*\.php$
+	@sensitive_ext path_regexp (?i)\.(sqlite|sqlite3|db|sql|bak|env|ini|log)$
+	@dotfiles {
+		path_regexp (^|/)\.
+		not path /.well-known/*
+	}
+
+	handle @blocked_paths {
+		respond 403
+	}
+	handle @uploads_php {
+		respond 403
+	}
+	handle @sensitive_ext {
+		respond 403
+	}
+	handle @dotfiles {
+		respond 403
+	}
+
+	handle {
+		try_files {path} {path}/index.php /index.php?{query}
+		php_server
+	}
 }
