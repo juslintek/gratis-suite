@@ -1,43 +1,13 @@
-FROM dunglas/frankenphp:php8.3-alpine
-
-# Install PHP extensions for WordPress + performance
-RUN install-php-extensions \
-    mysqli \
-    pdo_mysql \
-    gd \
-    zip \
-    intl \
-    opcache \
-    redis \
-    sqlite3 \
-    imagick \
-    exif \
-    bcmath
-
-# OPcache tuning for performance
-RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.jit=1255" >> /usr/local/etc/php/conf.d/opcache.ini && \
-    echo "opcache.jit_buffer_size=128M" >> /usr/local/etc/php/conf.d/opcache.ini
-
-# PHP performance tuning
-RUN echo "memory_limit=256M" >> /usr/local/etc/php/conf.d/performance.ini && \
-    echo "upload_max_filesize=64M" >> /usr/local/etc/php/conf.d/performance.ini && \
-    echo "post_max_size=64M" >> /usr/local/etc/php/conf.d/performance.ini && \
-    echo "realpath_cache_size=4096K" >> /usr/local/etc/php/conf.d/performance.ini && \
-    echo "realpath_cache_ttl=600" >> /usr/local/etc/php/conf.d/performance.ini
-
-# Download WordPress
-RUN curl -o /tmp/wp.tar.gz https://wordpress.org/latest.tar.gz && \
-    tar -xzf /tmp/wp.tar.gz -C /tmp && \
-    rm /tmp/wp.tar.gz
-
-WORKDIR /app
-
-# Caddyfile for FrankenPHP
-COPY Caddyfile /etc/caddy/Caddyfile
-
+ARG PHP_VERSION=8.6
+FROM dunglas/frankenphp:php${PHP_VERSION}-alpine
+RUN apk add --no-cache curl tar unzip
+RUN install-php-extensions gd zip intl exif bcmath mbstring pdo_sqlite sqlite3
+RUN printf "%s\n" "opcache.enable=1" "opcache.memory_consumption=256" "opcache.max_accelerated_files=20000" "opcache.validate_timestamps=1" "opcache.revalidate_freq=0" > /usr/local/etc/php/conf.d/zz-opcache.ini
+RUN printf "%s\n" "memory_limit=256M" "upload_max_filesize=64M" "post_max_size=64M" "display_errors=Off" "log_errors=On" "expose_php=Off" > /usr/local/etc/php/conf.d/zz-perf.ini
+RUN curl -fsSL -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && chmod +x /usr/local/bin/wp
+RUN curl -fsSL https://wordpress.org/latest.tar.gz -o /tmp/wp.tgz && tar -xzf /tmp/wp.tgz -C /tmp && mkdir -p /app/public && cp -a /tmp/wordpress/. /app/public/ && rm -rf /tmp/wp.tgz /tmp/wordpress
+RUN curl -fsSL -o /tmp/sq.zip https://downloads.wordpress.org/plugin/sqlite-database-integration.latest-stable.zip && unzip -q /tmp/sq.zip -d /app/public/wp-content/plugins/ && sed -e "s#{SQLITE_IMPLEMENTATION_FOLDER_PATH}#/app/public/wp-content/plugins/sqlite-database-integration#g" -e "s#{SQLITE_PLUGIN}#sqlite-database-integration/load.php#g" /app/public/wp-content/plugins/sqlite-database-integration/db.copy > /app/public/wp-content/db.php && rm -f /tmp/sq.zip
+COPY wp-config.franken.php /app/public/wp-config.php
+COPY Caddyfile /etc/frankenphp/Caddyfile
+WORKDIR /app/public
 EXPOSE 80 443
