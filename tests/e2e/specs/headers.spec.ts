@@ -19,4 +19,20 @@ test.describe('headers / caching / hardening @headers', () => {
     const h = (await request.get('/')).headers();
     expect(h['x-powered-by']).toBeFalsy();
   });
+
+  // Sensitive database/config/dotfile paths must never be downloadable over HTTP (Caddy ignores .htaccess).
+  test('sensitive SQLite database, dotfiles, debug log, and config paths are blocked', async ({ request }) => {
+    const sensitivePaths = [
+      '/wp-content/database/.htaccess',
+      '/wp-content/database/db-path.php',
+      '/wp-content/database/.ht.sqlite',
+      '/wp-content/debug.log',
+      '/wp-config.php',
+      '/xmlrpc.php',
+    ];
+    for (const p of sensitivePaths) {
+      const r = await request.get(p);
+      expect([403, 404], `${p} returned HTTP ${r.status()}`).toContain(r.status());
+    }
+  });
 });

@@ -9,7 +9,10 @@ services:
         PHP_VERSION: ${PHP_VERSION:-8.6}
     image: gratis-franken:local
     ports:
-      - "8080:80"
+      - "${PORT:-8080}:80"
+    environment:
+      WP_HOME: "http://localhost:${PORT:-8080}"
+      WP_SITEURL: "http://localhost:${PORT:-8080}"
     volumes:
       - wp_db:/app/public/wp-content/database
       - wp_uploads:/app/public/wp-content/uploads
