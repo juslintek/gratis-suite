@@ -1,11 +1,11 @@
 {
+	auto_https off
 	frankenphp
-	order php_server before file_server
 }
 
 :80 {
-	root * /app
+	root * /app/public
 	encode zstd gzip
+	try_files {path} {path}/index.php /index.php?{query}
 	php_server
-	file_server
 }

@@ -1,128 +1,55 @@
+# Gratis local dev — FrankenPHP + SQLite (parity with production gratis.superglobalsdevelopment.com)
+# Previous Apache+MariaDB stack backed up as docker-compose.apache.yml.bak
 services:
   wordpress:
-    build: .
-    ports:
-      - "8080:80"
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DEBUG: "1"
-      WORDPRESS_CONFIG_EXTRA: |
-        define('WP_DEBUG_LOG', true);
-        define('WP_DEBUG_DISPLAY', true);
-        define('SCRIPT_DEBUG', true);
-        define('WP_ENVIRONMENT_TYPE', 'local');
-        define('WP_REDIS_HOST', 'redis');
-    volumes:
-      - wp_data:/var/www/html
-      # Gratis ecosystem mounts
-      - ../gratis-cache:/var/www/html/wp-content/plugins/gratis-cache
-      - ../gratis-builder:/var/www/html/wp-content/plugins/gratis-builder
-      - ../gratis-backup:/var/www/html/wp-content/plugins/gratis-backup
-      - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
-      - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
-      - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
-      - ../gratis-forms:/var/www/html/wp-content/plugins/gratis-forms
-      - ../gratis-analytics:/var/www/html/wp-content/plugins/gratis-analytics
-      - ../gratis-automation:/var/www/html/wp-content/plugins/gratis-automation
-      - ../gratis-media:/var/www/html/wp-content/plugins/gratis-media
-      - ../gratis-crm:/var/www/html/wp-content/plugins/gratis-crm
-      - ../gratis-commerce:/var/www/html/wp-content/plugins/gratis-commerce
-      - ../gratis-tables:/var/www/html/wp-content/plugins/gratis-tables
-      - ../gratis-popup:/var/www/html/wp-content/plugins/gratis-popup
-      - ../gratis-social:/var/www/html/wp-content/plugins/gratis-social
-      - ../gratis-reviews:/var/www/html/wp-content/plugins/gratis-reviews
-      - ../gratis-seo:/var/www/html/wp-content/plugins/gratis-seo
-      - ../gratis-learn:/var/www/html/wp-content/plugins/gratis-learn
-      - ../gratis-booking:/var/www/html/wp-content/plugins/gratis-booking
-      - ../gratis-translate:/var/www/html/wp-content/plugins/gratis-translate
-      - ../gratis-access:/var/www/html/wp-content/plugins/gratis-access
-      - ../gratis-notify:/var/www/html/wp-content/plugins/gratis-notify
-      - ../gratis-project:/var/www/html/wp-content/plugins/gratis-project
-      - ../gratis-events:/var/www/html/wp-content/plugins/gratis-events
-      - ../gratis-invoice:/var/www/html/wp-content/plugins/gratis-invoice
-      - ../gratis-comply:/var/www/html/wp-content/plugins/gratis-comply
-      - ../gratis-affiliate:/var/www/html/wp-content/plugins/gratis-affiliate
-      - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: unless-stopped
-
-  db:
-    image: mariadb:11
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6380:6379"
-    restart: unless-stopped
-
-  wpcli:
     build:
       context: .
-      dockerfile: Dockerfile.cli
-    user: "33:33"
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_DB_NAME: wordpress
+      dockerfile: Dockerfile.franken
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.6}
+    image: gratis-franken:local
+    ports:
+      - "8080:80"
     volumes:
-      - wp_data:/var/www/html
-      - ../gratis-cache:/var/www/html/wp-content/plugins/gratis-cache
-      - ../gratis-builder:/var/www/html/wp-content/plugins/gratis-builder
-      - ../gratis-backup:/var/www/html/wp-content/plugins/gratis-backup
-      - ../gratis-db:/var/www/html/wp-content/plugins/gratis-db
-      - ../gratis-ai:/var/www/html/wp-content/plugins/gratis-ai
-      - ../gratis-theme:/var/www/html/wp-content/themes/gratis-theme
-      - ../gratis-fleet:/var/www/html/wp-content/plugins/gratis-fleet
-      - ../gratis-forms:/var/www/html/wp-content/plugins/gratis-forms
-      - ../gratis-analytics:/var/www/html/wp-content/plugins/gratis-analytics
-      - ../gratis-automation:/var/www/html/wp-content/plugins/gratis-automation
-      - ../gratis-media:/var/www/html/wp-content/plugins/gratis-media
-      - ../gratis-crm:/var/www/html/wp-content/plugins/gratis-crm
-      - ../gratis-commerce:/var/www/html/wp-content/plugins/gratis-commerce
-      - ../gratis-tables:/var/www/html/wp-content/plugins/gratis-tables
-      - ../gratis-popup:/var/www/html/wp-content/plugins/gratis-popup
-      - ../gratis-social:/var/www/html/wp-content/plugins/gratis-social
-      - ../gratis-reviews:/var/www/html/wp-content/plugins/gratis-reviews
-      - ../gratis-seo:/var/www/html/wp-content/plugins/gratis-seo
-      - ../gratis-learn:/var/www/html/wp-content/plugins/gratis-learn
-      - ../gratis-booking:/var/www/html/wp-content/plugins/gratis-booking
-      - ../gratis-translate:/var/www/html/wp-content/plugins/gratis-translate
-      - ../gratis-access:/var/www/html/wp-content/plugins/gratis-access
-      - ../gratis-notify:/var/www/html/wp-content/plugins/gratis-notify
-      - ../gratis-project:/var/www/html/wp-content/plugins/gratis-project
-      - ../gratis-events:/var/www/html/wp-content/plugins/gratis-events
-      - ../gratis-invoice:/var/www/html/wp-content/plugins/gratis-invoice
-      - ../gratis-comply:/var/www/html/wp-content/plugins/gratis-comply
-      - ../gratis-affiliate:/var/www/html/wp-content/plugins/gratis-affiliate
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles:
-      - cli
-    entrypoint: wp
-    command: "--info"
+      - wp_db:/app/public/wp-content/database
+      - wp_uploads:/app/public/wp-content/uploads
+      - ../gratis-theme:/app/public/wp-content/themes/gratis-theme
+      - ../gratis-access/:/app/public/wp-content/plugins/gratis-access
+      - ../gratis-affiliate/:/app/public/wp-content/plugins/gratis-affiliate
+      - ../gratis-ai/:/app/public/wp-content/plugins/gratis-ai
+      - ../gratis-analytics/:/app/public/wp-content/plugins/gratis-analytics
+      - ../gratis-automation/:/app/public/wp-content/plugins/gratis-automation
+      - ../gratis-backup/:/app/public/wp-content/plugins/gratis-backup
+      - ../gratis-booking/:/app/public/wp-content/plugins/gratis-booking
+      - ../gratis-builder/:/app/public/wp-content/plugins/gratis-builder
+      - ../gratis-cache/:/app/public/wp-content/plugins/gratis-cache
+      - ../gratis-cdn/:/app/public/wp-content/plugins/gratis-cdn
+      - ../gratis-commerce/:/app/public/wp-content/plugins/gratis-commerce
+      - ../gratis-community/:/app/public/wp-content/plugins/gratis-community
+      - ../gratis-comply/:/app/public/wp-content/plugins/gratis-comply
+      - ../gratis-crm/:/app/public/wp-content/plugins/gratis-crm
+      - ../gratis-db/:/app/public/wp-content/plugins/gratis-db
+      - ../gratis-devtools/:/app/public/wp-content/plugins/gratis-devtools
+      - ../gratis-docs/:/app/public/wp-content/plugins/gratis-docs
+      - ../gratis-events/:/app/public/wp-content/plugins/gratis-events
+      - ../gratis-fleet/:/app/public/wp-content/plugins/gratis-fleet
+      - ../gratis-forms/:/app/public/wp-content/plugins/gratis-forms
+      - ../gratis-installer/:/app/public/wp-content/plugins/gratis-installer
+      - ../gratis-invoice/:/app/public/wp-content/plugins/gratis-invoice
+      - ../gratis-learn/:/app/public/wp-content/plugins/gratis-learn
+      - ../gratis-mail/:/app/public/wp-content/plugins/gratis-mail
+      - ../gratis-media/:/app/public/wp-content/plugins/gratis-media
+      - ../gratis-notify/:/app/public/wp-content/plugins/gratis-notify
+      - ../gratis-popup/:/app/public/wp-content/plugins/gratis-popup
+      - ../gratis-project/:/app/public/wp-content/plugins/gratis-project
+      - ../gratis-reviews/:/app/public/wp-content/plugins/gratis-reviews
+      - ../gratis-security/:/app/public/wp-content/plugins/gratis-security
+      - ../gratis-seo/:/app/public/wp-content/plugins/gratis-seo
+      - ../gratis-social/:/app/public/wp-content/plugins/gratis-social
+      - ../gratis-tables/:/app/public/wp-content/plugins/gratis-tables
+      - ../gratis-translate/:/app/public/wp-content/plugins/gratis-translate
+    restart: unless-stopped
 
 volumes:
-  wp_data:
-  db_data:
+  wp_db:
+  wp_uploads:

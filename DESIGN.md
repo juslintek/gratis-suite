@@ -9,8 +9,9 @@ Pair with `RULES.md` (hard rules) and `LESSONS.md` (retrospective).
   repo** — each plugin and the suite are separate repos.
 - **Bundle is completely free** — no pricing page, no "Pro" tier, no locked features.
 - **Production landing:** https://gratis.superglobalsdevelopment.com — FrankenPHP
-  (PHP 8.5) + **SQLite** in a Docker container behind system **nginx** (TLS). WP core is
-  baked into the image; plugins + theme are bind-mounted; SQLite DB + uploads in volumes.
+  (PHP 8.6; image supports PHP 8.5 & 8.6 via `PHP_VERSION`) + **SQLite** in a Docker
+  container behind system **nginx** (TLS). WP core is baked into the image; plugins +
+  theme are bind-mounted; SQLite DB + uploads in volumes.
 - **Local dev:** http://localhost:8080 — the **same** FrankenPHP+SQLite stack (parity),
   started via `start.sh`. **This is the safe target for destructive tests.**
 - Infra/env specifics live in `~/.kiro/steering/gratis-local-env.md`.

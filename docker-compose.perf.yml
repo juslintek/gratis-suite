@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.franken
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.6}
     ports:
       - "8443:443"
       - "8080:80"
@@ -50,6 +52,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.cli
+      args:
+        PHP_VERSION: ${WPCLI_PHP_VERSION:-8.5}
     user: "0:0"
     environment:
       WORDPRESS_DB_HOST: db

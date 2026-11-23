@@ -1,4 +1,5 @@
-FROM wordpress:7-php8.3-apache
+ARG PHP_VERSION=8.5
+FROM wordpress:7-php${PHP_VERSION}-apache
 
 # libvips runtime + CLI tools (php-vips uses libvips via PHP's bundled FFI)
 RUN apt-get update && apt-get install -y --no-install-recommends libvips-tools \
