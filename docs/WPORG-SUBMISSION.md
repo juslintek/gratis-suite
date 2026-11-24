@@ -44,4 +44,4 @@ Remaining 23 plugins (all 0 PCP errors, ZIPs ready in `/Volumes/Projects/gratis/
 4. Confirm the automated server-side Plugin Check passes on WordPress.org, then watch your `juslintek` WordPress.org email for reviewer feedback or SVN approval.
 5. After SVN approval, push `{plugin}/.wordpress-org/*` to SVN `assets/` and tag `tags/{version}/`.
 
-> Note on WordPress.org Theme Directory: `gratis-theme-1.0.0.zip` is submitted separately via `https://wordpress.org/themes/upload/` after running Theme Check.
+> Note on WordPress.org Theme Directory: `gratis-theme-1.0.0.zip` has also passed official WordPress Theme Check with **0 REQUIRED and 0 WARNING** (with a fresh 1200x900 GPL-2.0 `screenshot.png`, `Tested up to: 7.1`, and no `.gitkeep`) and is ready for submission via `https://wordpress.org/themes/upload/`.
