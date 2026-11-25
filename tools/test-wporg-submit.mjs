@@ -16,7 +16,9 @@
  */
 
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -25,6 +27,7 @@ import {
   classifyLivePage,
   classifySubmissionResult,
   loadQueue,
+  resolveChromeDevToolsWsUrl,
   runSubmissionInPage,
   selectNextEligible,
   summarizeQueue,
@@ -247,6 +250,19 @@ async function main() {
       assert.equal(res.hasError, true);
       assert.equal(res.updatedOk, false);
       assert.equal(res.scanPass, false);
+    });
+
+    await check('resolveChromeDevToolsWsUrl builds IPv4 ws://127.0.0.1 URL from DevToolsActivePort', async () => {
+      const tmpFile = path.join(os.tmpdir(), `devtools-active-port-${process.pid}`);
+      try {
+        fs.writeFileSync(tmpFile, '9222\n/devtools/browser/abc-123\n', 'utf8');
+        assert.equal(resolveChromeDevToolsWsUrl(tmpFile), 'ws://127.0.0.1:9222/devtools/browser/abc-123');
+        fs.writeFileSync(tmpFile, 'bad-port\n/devtools/browser/abc-123\n', 'utf8');
+        assert.equal(resolveChromeDevToolsWsUrl(tmpFile), null);
+        assert.equal(resolveChromeDevToolsWsUrl(`${tmpFile}.missing`), null);
+      } finally {
+        if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+      }
     });
   } finally {
     await browser.close();

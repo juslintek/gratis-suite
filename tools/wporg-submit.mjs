@@ -110,6 +110,55 @@ export function parseArgs(argv) {
   return opts;
 }
 
+const attemptedAutoAttach = new Set();
+
+export function resolveChromeDevToolsWsUrl(
+  portFilePath = path.join(
+    process.env.HOME || '',
+    'Library',
+    'Application Support',
+    'Google',
+    'Chrome',
+    'DevToolsActivePort'
+  )
+) {
+  if (!portFilePath || !fs.existsSync(portFilePath)) {
+    return null;
+  }
+  const lines = fs.readFileSync(portFilePath, 'utf8')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length < 2 || !/^\d+$/.test(lines[0]) || !lines[1].startsWith('/')) {
+    return null;
+  }
+  return `ws://127.0.0.1:${lines[0]}${lines[1]}`;
+}
+
+function tryAutoAttachChrome(session) {
+  if (process.env.WPORG_NO_AUTO_ATTACH === '1' || attemptedAutoAttach.has(session)) {
+    return false;
+  }
+  attemptedAutoAttach.add(session);
+  const wsUrl = resolveChromeDevToolsWsUrl();
+  if (!wsUrl) {
+    return false;
+  }
+  try {
+    execFileSync('playwright-cli', [`-s=${session}`, 'attach', `--cdp=${wsUrl}`], {
+      encoding: 'utf8',
+      timeout: 30000,
+      env: {
+        ...process.env,
+        PATH: `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH || ''}`,
+      },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function runPw(session, args, { raw = false, timeout = 30000 } = {}) {
   const cliArgs = [`-s=${session}`];
   if (raw) cliArgs.push('--raw');
@@ -126,8 +175,12 @@ function runPw(session, args, { raw = false, timeout = 30000 } = {}) {
   } catch (err) {
     const stderr = (err.stderr || err.stdout || err.message || '').toString().trim();
     if (/is not open|please run open first|ECONNREFUSED|Target page, context or browser has been closed/i.test(stderr)) {
+      if (tryAutoAttachChrome(session)) {
+        return runPw(session, args, { raw, timeout });
+      }
+      const wsHint = resolveChromeDevToolsWsUrl() || 'ws://127.0.0.1:9222/devtools/browser/<id>';
       throw new SessionUnavailableError(
-        `Browser session "${session}" is not attached/open. Attach Chrome first: playwright-cli -s=${session} attach --cdp=chrome`
+        `Browser session "${session}" is not attached/open. Ensure chrome://inspect/#remote-debugging is enabled, then attach via IPv4: playwright-cli -s=${session} attach --cdp=${wsHint}`
       );
     }
     throw new Error(`playwright-cli (${cliArgs.join(' ')}) failed: ${stderr}`);
@@ -451,13 +504,17 @@ export function formatStatusReport(live, queue, nextPlugin, nextZip) {
 }
 
 export async function runSubmissionInPage(page, { mode, zipPath, comment }) {
+  if (typeof page.bringToFront === 'function') {
+    await page.bringToFront().catch(() => {});
+  }
   const formSelector = mode === 'update-active'
     ? 'form:has(input[name="action"][value="upload-additional"])'
     : 'form:has(input[type="file"][name="zip_file"]):not(:has(input[name="action"][value="upload-additional"]))';
   const form = page.locator(formSelector).first();
   if (mode === 'update-active' && !(await form.isVisible())) {
-    const toggle = page.locator('a, button').filter({ hasText: /Upload updated .* plugin for review/i }).first();
+    const toggle = page.locator('a.show-upload-additional, a, button').filter({ hasText: /Upload updated .* plugin for review/i }).first();
     if (await toggle.count()) {
+      await toggle.scrollIntoViewIfNeeded().catch(() => {});
       await toggle.click();
     }
   }
@@ -514,13 +571,15 @@ function submitViaForm(session, { mode, zipPath, comment, pluginId }) {
   const payload = JSON.stringify({ mode, zipPath, comment, pluginId });
   const code = `async (page) => {
     const cfg = ${payload};
+    await page.bringToFront().catch(() => {});
     const formSelector = cfg.mode === 'update-active'
       ? 'form:has(input[name="action"][value="upload-additional"])'
       : 'form:has(input[type="file"][name="zip_file"]):not(:has(input[name="action"][value="upload-additional"]))';
     const form = page.locator(formSelector).first();
     if (cfg.mode === 'update-active' && !(await form.isVisible())) {
-      const toggle = page.locator('a, button').filter({ hasText: /Upload updated .* plugin for review/i }).first();
+      const toggle = page.locator('a.show-upload-additional, a, button').filter({ hasText: /Upload updated .* plugin for review/i }).first();
       if (await toggle.count()) {
+        await toggle.scrollIntoViewIfNeeded().catch(() => {});
         await toggle.click();
       }
     }

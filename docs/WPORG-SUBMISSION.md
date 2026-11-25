@@ -36,17 +36,15 @@ Updated: 2026-11-25
 The reusable queue script uses the already signed-in `playwright-cli -s=directadmin` Chrome session and reads/updates `gratis-suite/docs/wporg-queue.json`:
 
 ```sh
-# Re-attach to your signed-in Chrome session if playwright-cli is not attached yet
-playwright-cli -s=directadmin attach --cdp=chrome
-
 # Check live WordPress.org slot state, active submission, and next eligible plugin
+# (auto-attaches via IPv4 ws://127.0.0.1:<port><path> from Chrome's DevToolsActivePort)
 node gratis-suite/tools/wporg-submit.mjs --status
 
 # Dry-run the next queued production-ready plugin (verifies ZIP + live form/lock without submitting)
 node gratis-suite/tools/wporg-submit.mjs --submit-next --dry-run
 
 # Upload a refreshed ZIP for an active awaiting-review submission
-node gratis-suite/tools/wporg-submit.mjs --update-active --slug=gratis-seo --comment="Run Sitemap::serve() at template_redirect priority 1 + pre_handle_404 bypass and harden MetaBox strict_types/revision handling."
+node gratis-suite/tools/wporg-submit.mjs --update-active --slug=gratis-seo --comment="Summary of changes"
 
 # Submit the next queued production-ready plugin once WordPress.org unlocks the slot
 node gratis-suite/tools/wporg-submit.mjs --submit-next
