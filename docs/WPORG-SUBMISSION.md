@@ -6,7 +6,7 @@ Updated: 2026-11-25
 
 - **Active submission:** `Gratis SEO` (`gratis-seo-1.0.0.zip`, `plugin_id=413649`, submitted 2026-11-24) — **Awaiting Review** (Automated Plugin Scanning: Pass).
 - **1-pending-plugin limit:** WordPress.org allows only **1 unreviewed plugin per account at a time**. Do not attempt to bypass this limit or create secondary accounts. Once `Gratis SEO` is reviewed and approved, run `node gratis-suite/tools/wporg-submit.mjs --submit-next` to submit the next queued plugin.
-- **Theme Directory:** `GRATIS` (`gratis-theme-1.0.1.zip`, packaged under `gratis/`) updated on `https://themes.trac.wordpress.org/ticket/301616` — **`Results of Automated Theme Scanning: Pass`** (0 REQUIRED, 0 WARNING; text domain cleanly detected as `gratis`).
+- **Theme Directory:** `GRATIS` (`gratis-theme-1.0.2.zip`, 592 KB, packaged under `gratis/`) ready for Ticket `#301616` (`https://themes.trac.wordpress.org/ticket/301616`) with `/demo/gratis-theme/`, `/docs/gratis-theme/`, `tools/wporg-theme-upload.mjs`, and `tools/upload-theme-wporg-wizard.sh` (`1.0.1` passed `Results of Automated Theme Scanning: Pass` with 0 REQUIRED, 0 WARNING; `1.0.2` passes `validate-theme.php` 42/42).
 
 ## Verification & audit summary (2026-11-25)
 
@@ -60,6 +60,19 @@ Safety guarantees built into `wporg-submit.mjs`:
 - Verifies ZIP existence, size (< 10 MB), and `PK\x03\x04` header before touching the browser.
 - Stops cleanly (exit 2 or 3) without bypassing anything if WordPress.org's 1-pending-plugin lock, login screen, 2FA prompt, CAPTCHA challenge, detached Chrome session, or unexpected page state is detected.
 - Rejects false-positive upload confirmations when error notices are present, and updates `gratis-suite/docs/wporg-queue.json` only after cleanly confirming `"Results of Automated Plugin Scanning: Pass"`.
+
+## Theme upload automation & wizard (`tools/wporg-theme-upload.mjs`, `tools/upload-theme-wporg-wizard.sh`)
+
+```sh
+# Check ZIP integrity (PK\x03\x04, <10 MB, top-level gratis/ directory) + Chrome session
+node gratis-suite/tools/wporg-theme-upload.mjs --status
+
+# Dry-run or upload gratis-theme-1.0.2.zip using authenticated Chrome CDP session
+node gratis-suite/tools/wporg-theme-upload.mjs --upload --dry-run
+
+# Interactive browser walkthrough for Ticket #301616 when manual login/2FA is needed
+bash gratis-suite/tools/upload-theme-wporg-wizard.sh
+```
 
 ## Honest 33-plugin classification
 
