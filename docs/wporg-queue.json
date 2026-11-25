@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-25T08:40:00.000Z",
+  "updatedAt": "2026-11-25T09:14:08.017Z",
   "wporgAccount": "juslintek",
   "submissionUrl": "https://wordpress.org/plugins/developers/add/",
   "pcpVersion": "2.2.0",
@@ -26,10 +26,10 @@
       "scanResult": "Pass",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Active WordPress.org submission. Hardened ZIP uploaded 2026-11-25T07:40Z (SEOCommand sslverify+ABSPATH, MetaBox wp_add_inline_style, REST auth_callback+esc_url_raw, Sitemap status_header(200)+noindex exclusion, uninstall.php 6 meta keys). Follow-up PRs merged: Sitemap template_redirect priority 1 + pre_handle_404 bypass, strict_types-safe MetaBox auth_callback/enqueue_styles + revision save skip, and 12-assertion seo-selfcheck.php. Rebuilt dist/gratis-seo-1.0.0.zip ready for --update-active re-upload once Chrome CDP is attached.",
-      "lastUpdatedUploadAt": "2026-11-25T07:40:39.657Z",
+      "reviewNotes": "Active WordPress.org submission. Refreshed PR #5/#6 hardened ZIP (Sitemap template_redirect priority 1 + pre_handle_404 bypass, strict_types-safe MetaBox auth_callback/enqueue_styles + revision save skip, 12-assertion seo-selfcheck.php, PCP 2.2.0: 0 errors, 0 warnings) uploaded to #413649 at 2026-11-25T09:14Z.",
+      "lastUpdatedUploadAt": "2026-11-25T09:14:08.017Z",
       "lastUploadResult": "uploaded",
-      "lastUploadNotes": "Pre-review hardening update: removed sslverify=false and added ABSPATH guard in SEOCommand, moved MetaBox inline CSS to wp_add_inline_style(), hardened REST post meta auth_callback and esc_url_raw sanitization, added HTTP 200 status_header and noindex exclusion to Sitemap, upgraded uninstall.php to delete all 6 _gratis_seo_* post meta keys via core WP API, and cleaned readme.txt FAQ."
+      "lastUploadNotes": "Run Sitemap::serve() at template_redirect priority 1 + pre_handle_404 bypass, harden MetaBox strict_types callbacks and revision skip (PCP 2.2.0: 0 errors, 0 warnings)."
     },
     {
       "priority": 2,
