@@ -35,4 +35,23 @@ test.describe('headers / caching / hardening @headers', () => {
       expect([403, 404], `${p} returned HTTP ${r.status()}`).toContain(r.status());
     }
   });
+
+  // Private/internal CPTs (CRM contacts, client invoices, DMs, internal tasks/projects, quizzes, tables)
+  // must never expose records unauthenticated via /wp-json/wp/v2/<cpt>.
+  test('private CPT REST routes are not publicly exposed', async ({ request }) => {
+    const privateRoutes = [
+      '/wp-json/wp/v2/gratis_contact',
+      '/wp-json/wp/v2/gratis_invoice',
+      '/wp-json/wp/v2/gratis_message',
+      '/wp-json/wp/v2/gratis_activity',
+      '/wp-json/wp/v2/gratis_project',
+      '/wp-json/wp/v2/gratis_task',
+      '/wp-json/wp/v2/gratis_quiz',
+      '/wp-json/wp/v2/gratis_table',
+    ];
+    for (const route of privateRoutes) {
+      const r = await request.get(route);
+      expect([401, 403, 404], `${route} leaked HTTP ${r.status()}`).toContain(r.status());
+    }
+  });
 });

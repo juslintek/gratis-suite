@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-25T07:40:39.658Z",
+  "updatedAt": "2026-11-25T08:40:00.000Z",
   "wporgAccount": "juslintek",
   "submissionUrl": "https://wordpress.org/plugins/developers/add/",
   "pcpVersion": "2.2.0",
   "summary": {
     "total": 33,
-    "productionReady": 28,
-    "needsWork": 5,
+    "productionReady": 27,
+    "needsWork": 6,
     "pcpZeroErrors": 33,
     "pcpZeroErrorsZeroWarnings": 29
   },
@@ -26,10 +26,10 @@
       "scanResult": "Pass",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Active WordPress.org submission. Hardened ZIP uploaded 2026-11-25T07:40Z (SEOCommand sslverify+ABSPATH, MetaBox wp_add_inline_style, REST auth_callback+esc_url_raw, Sitemap status_header(200)+noindex exclusion, uninstall.php 6 meta keys). Follow-up PR #5 (Sitemap template_redirect priority 1 + pre_handle_404 bypass for WP 6.4-7.x) is merged, live-verified on production, and rebuilt in dist/gratis-seo-1.0.0.zip ready for --update-active re-upload once Chrome CDP is attached.",
+      "reviewNotes": "Active WordPress.org submission. Hardened ZIP uploaded 2026-11-25T07:40Z (SEOCommand sslverify+ABSPATH, MetaBox wp_add_inline_style, REST auth_callback+esc_url_raw, Sitemap status_header(200)+noindex exclusion, uninstall.php 6 meta keys). Follow-up PRs merged: Sitemap template_redirect priority 1 + pre_handle_404 bypass, strict_types-safe MetaBox auth_callback/enqueue_styles + revision save skip, and 12-assertion seo-selfcheck.php. Rebuilt dist/gratis-seo-1.0.0.zip ready for --update-active re-upload once Chrome CDP is attached.",
       "lastUpdatedUploadAt": "2026-11-25T07:40:39.657Z",
       "lastUploadResult": "uploaded",
-      "lastUploadNotes": "Pre-review hardening update: removed sslverify=false and added ABSPATH guard in SEOCommand, moved MetaBox inline CSS to wp_add_inline_style(), hardened REST post meta auth_callback and esc_url_raw sanitization, added HTTP 200 status_header and noindex exclusion to Sitemap, upgraded uninstall.php to delete all 6 _gratis_seo_* post meta keys via core WP API, and cleaned readme.txt FAQ. Verified 0 errors / 0 warnings with Plugin Check 2.2.0."
+      "lastUploadNotes": "Pre-review hardening update: removed sslverify=false and added ABSPATH guard in SEOCommand, moved MetaBox inline CSS to wp_add_inline_style(), hardened REST post meta auth_callback and esc_url_raw sanitization, added HTTP 200 status_header and noindex exclusion to Sitemap, upgraded uninstall.php to delete all 6 _gratis_seo_* post meta keys via core WP API, and cleaned readme.txt FAQ."
     },
     {
       "priority": 2,
@@ -42,7 +42,7 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "2,179 LOC stream-first backup & restore engine with PathGuard, SHA-256 verification, SQLite backup API, and 17-assertion restore self-check. All src/ files ABSPATH-guarded."
+      "reviewNotes": "Stream-first backup & restore engine with PathGuard, SHA-256 verification, SQLite backup API, MYSQL_PWD env passing (no CLI password leak), DB_HOST host:port/socket/IPv6 parser, exec() availability guard, and 21-assertion restore-selfcheck.php."
     },
     {
       "priority": 3,
@@ -81,7 +81,7 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Accessible star ratings, testimonial grids, review submission form, and Schema.org AggregateRating markup."
+      "reviewNotes": "Accessible star ratings, testimonial grids, nonce+honeypot review submission form, and Schema.org AggregateRating markup."
     },
     {
       "priority": 6,
@@ -94,7 +94,7 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Cookie-free privacy-first analytics with daily-rotating salted hashes, DNT support, retention pruning, and WP 6.2+ %i SQL identifier escaping (reduced from 7 PCP warnings to 0)."
+      "reviewNotes": "Cookie-free privacy-first analytics with daily-rotating salted hashes, DNT support, retention pruning, and WP 6.2+ %i SQL identifier escaping."
     },
     {
       "priority": 7,
@@ -107,7 +107,7 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Accessible cookie consent banner with Google Consent Mode v2, script gating, privacy policy generator, hashed consent log, and rate-limited GDPR data-request REST endpoint."
+      "reviewNotes": "Accessible cookie consent banner with Google Consent Mode v2, script gating, privacy policy generator, hashed consent log, and per-visitor rate limiting on both /consent and /data-request REST endpoints."
     },
     {
       "priority": 8,
@@ -120,7 +120,7 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "1,952 LOC form builder with dedicated submissions table, CSV export, honeypot + optional Google reCAPTCHA v3 (disclosed in Third-Party Services), and %i SQL identifier escaping (reduced from 7 PCP warnings to 0)."
+      "reviewNotes": "Form builder with dedicated submissions table, CSV export, honeypot + optional Google reCAPTCHA v3 (disclosed in Third-Party Services), and %i SQL identifier escaping."
     },
     {
       "priority": 9,
@@ -137,19 +137,6 @@
     },
     {
       "priority": 10,
-      "slug": "gratis-security",
-      "name": "Gratis Security",
-      "version": "2.0.0",
-      "zip": "dist/gratis-security-2.0.0.zip",
-      "repoUrl": "https://github.com/juslintek/gratis-security",
-      "classification": "production-ready",
-      "status": "queued",
-      "pcpErrors": 0,
-      "pcpWarnings": 0,
-      "reviewNotes": "15,004 LOC WAF, malware scanner, file integrity monitor, security headers, TOTP 2FA, and 4 passing self-check suites. Third-Party Services added for WordPress.org checksums & optional feeds (reduced from 2 PCP warnings to 0)."
-    },
-    {
-      "priority": 11,
       "slug": "gratis-cdn",
       "name": "Gratis CDN",
       "version": "1.0.0",
@@ -162,7 +149,7 @@
       "reviewNotes": "Asset URL rewriting, content-hash fingerprinting, and authenticated Cloudflare/BunnyCDN/KeyCDN/webhook purge with Third-Party Services disclosures and ABSPATH guards."
     },
     {
-      "priority": 12,
+      "priority": 11,
       "slug": "gratis-commerce",
       "name": "Gratis Commerce",
       "version": "1.0.0",
@@ -172,10 +159,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Stripe Checkout with replay-protected HMAC-SHA256 webhook verification plus WooCommerce quick view, wishlist, compare, and AJAX filters. ABSPATH guards and Stripe Third-Party Services disclosure added."
+      "reviewNotes": "Stripe Checkout with replay-protected HMAC-SHA256 webhook verification, idempotent order recording, rate-limited published-product session creation, sanitized webhook meta, plus WooCommerce quick view, wishlist, compare, and AJAX filters."
     },
     {
-      "priority": 13,
+      "priority": 12,
       "slug": "gratis-crm",
       "name": "Gratis CRM",
       "version": "1.0.0",
@@ -185,10 +172,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "1,891 LOC contact manager with broadcast campaigns, unsubscribe tokens, CSV export, and Gratis Forms auto-capture. Note: uses taxonomy slug contact_tag (consider prefixing if requested during review)."
+      "reviewNotes": "Contact manager with broadcast campaigns, HMAC unsubscribe tokens, formula-safe CSV export (PHP 8.4+ fputcsv safe), prefixed taxonomy gratis_contact_tag, and show_in_rest=false on private gratis_contact CPT."
     },
     {
-      "priority": 14,
+      "priority": 13,
       "slug": "gratis-booking",
       "name": "Gratis Booking",
       "version": "1.0.0",
@@ -198,10 +185,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Services/appointments CPTs, configurable business hours & slot intervals, REST slot availability/booking, and email notifications."
+      "reviewNotes": "Services/appointments CPTs, configurable business hours & minute-accurate slot stepping, rate-limited & slot-validated REST booking preventing double-booking/email spam, and confirmation emails."
     },
     {
-      "priority": 15,
+      "priority": 14,
       "slug": "gratis-tables",
       "name": "Gratis Tables",
       "version": "1.0.0",
@@ -211,10 +198,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "CSV-backed responsive data tables with keyboard-accessible sorting and client-side search."
+      "reviewNotes": "CSV-backed responsive data tables with keyboard-accessible sorting, client-side search enqueued via wp_add_inline_script, PHP 8.4+ str_getcsv safety, and show_in_rest=false on private gratis_table CPT."
     },
     {
-      "priority": 16,
+      "priority": 15,
       "slug": "gratis-invoice",
       "name": "Gratis Invoice",
       "version": "1.0.0",
@@ -224,10 +211,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Line-item invoices with auto-recalculated totals, printable HTML output, and multi-currency settings. Header description aligned with src/."
+      "reviewNotes": "Line-item invoices with auto-recalculated totals, per-invoice edit_post-gated printable HTML output, show_in_rest=false closing client PII exposure, and multi-currency settings."
     },
     {
-      "priority": 17,
+      "priority": 16,
       "slug": "gratis-learn",
       "name": "Gratis Learn",
       "version": "1.0.0",
@@ -237,10 +224,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Courses, ordered lessons, quiz CPT, per-user progress REST endpoint, and outline shortcode."
+      "reviewNotes": "Courses, ordered lessons, private quiz CPT (show_in_rest=false), published-lesson progress REST endpoint, and outline/catalog shortcode."
     },
     {
-      "priority": 18,
+      "priority": 17,
       "slug": "gratis-automation",
       "name": "Gratis Automation",
       "version": "1.0.0",
@@ -250,10 +237,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Trigger-to-action workflow engine (email, webhook, purge cache, create post, update meta) with ABSPATH guard and Third-Party Services disclosure for user-configured webhooks."
+      "reviewNotes": "Trigger-to-action workflow engine with monotonic IDs, cron cleanup on delete, wp_safe_remote_post webhooks, ABSPATH guard, and Third-Party Services disclosure."
     },
     {
-      "priority": 19,
+      "priority": 18,
       "slug": "gratis-affiliate",
       "name": "Gratis Affiliate",
       "version": "1.0.0",
@@ -263,10 +250,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Referral codes, hardened HttpOnly/SameSite attribution cookie, commission tracking, and admin payout tool (reduced from 2 PCP warnings to 0)."
+      "reviewNotes": "Referral codes, hardened HttpOnly/SameSite attribution cookie, commission tracking, and admin payout tool."
     },
     {
-      "priority": 20,
+      "priority": 19,
       "slug": "gratis-community",
       "name": "Gratis Community",
       "version": "1.0.0",
@@ -276,10 +263,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Extended user profiles, activity feed CPT/shortcode/REST, groups CPT, and logged-in messaging endpoint."
+      "reviewNotes": "Extended user profiles (per-user meta auth_callback), activity feed shortcode/REST, groups CPT, private direct messages (show_in_rest=false, post_status=private, recipient validation + rate limit)."
     },
     {
-      "priority": 21,
+      "priority": 20,
       "slug": "gratis-events",
       "name": "Gratis Events",
       "version": "1.0.0",
@@ -289,10 +276,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Events with start/end/venue/capacity/recurrence, RSVP endpoint, and iCal export. Note: uses taxonomy slug event_category."
+      "reviewNotes": "Events with start/end/venue/capacity/recurrence, published-only rate-limited & sanitized RSVP endpoint, and iCal export. Note: still uses taxonomy slug event_category (referenced by gratis-theme archive template; prefix with migration before slot #20 if requested)."
     },
     {
-      "priority": 22,
+      "priority": 21,
       "slug": "gratis-media",
       "name": "Gratis Media",
       "version": "1.0.0",
@@ -302,10 +289,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Media library folders, auto-organize on upload, bulk organizer, and lazy-loaded gallery shortcode. Note: uses taxonomy slug media_folder."
+      "reviewNotes": "Media library folders using prefixed taxonomy gratis_media_folder, auto-organize on upload, bulk organizer, and lazy-loaded gallery shortcode."
     },
     {
-      "priority": 23,
+      "priority": 22,
       "slug": "gratis-builder",
       "name": "GRATIS Builder",
       "version": "1.0.0",
@@ -315,10 +302,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "1,877 LOC Gutenberg pattern library, block editing REST API, and AI generation endpoint with rate limiting. All 8 pattern files ABSPATH-guarded. Note: uses listing_category/listing_location taxonomies."
+      "reviewNotes": "Gutenberg pattern library, per-post edit_post-gated block editing REST API with innerContent sync, rate-limited AI generation endpoint, and directory listings with prefixed taxonomies (gratis_listing_category/gratis_listing_location), hardened meta auth, and working frontend submission handler."
     },
     {
-      "priority": 24,
+      "priority": 23,
       "slug": "gratis-access",
       "name": "Gratis Access",
       "version": "1.0.0",
@@ -328,10 +315,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Tiered post/page content restriction with admin grant tool and WP-CLI. Removed unimplemented drip/per-section claims from readme.txt and header. Note: uses taxonomy slug access_level."
+      "reviewNotes": "Tiered content restriction across singular views, excerpts, RSS feeds, and REST responses; prefixed gratis_access_level taxonomy with option-guarded seeding; manage_options-gated _access_level user meta."
     },
     {
-      "priority": 25,
+      "priority": 24,
       "slug": "gratis-project",
       "name": "Gratis Project",
       "version": "1.0.0",
@@ -341,10 +328,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Projects & tasks CPTs, MetaBox, and read-only Kanban board shortcode. Note: uses taxonomy slug task_status."
+      "reviewNotes": "Projects & tasks CPTs (show_in_rest=false closing internal data leak), MetaBox, and Kanban board shortcode. Note: still uses taxonomy slug task_status (used on live demo board; prefix with migration before slot #24 if requested)."
     },
     {
-      "priority": 26,
+      "priority": 25,
       "slug": "gratis-translate",
       "name": "Gratis Translate",
       "version": "1.0.0",
@@ -354,10 +341,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "Multilingual content linking, accessible language switcher, and hreflang tags. Note: uses taxonomy slug language (reviewers may recommend prefixing to gratis_language)."
+      "reviewNotes": "Multilingual content linking using prefixed taxonomy gratis_language (avoids Polylang language collision) with option-guarded seeding, accessible language switcher, and hreflang tags."
     },
     {
-      "priority": 27,
+      "priority": 26,
       "slug": "gratis-fleet",
       "name": "Gratis Fleet",
       "version": "1.0.0",
@@ -367,10 +354,10 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 0,
-      "reviewNotes": "1,527 LOC multi-site manager. Hardened: fixed arbitrary do_action injection in WebhookHub::receive, cached DB size query, removed all 4 sslverify=false flags, added ABSPATH guards & Third-Party Services disclosures, removed competitor pricing copy (reduced from 3 PCP warnings to 0)."
+      "reviewNotes": "Multi-site manager. Hardened: fixed arbitrary do_action injection in WebhookHub::receive, wp_safe_remote_post webhooks, cached DB size query, removed all 4 sslverify=false flags, added ABSPATH guards (including WorkerEndpoint) & Third-Party Services disclosures."
     },
     {
-      "priority": 28,
+      "priority": 27,
       "slug": "gratis-ai",
       "name": "Gratis AI",
       "version": "2.0.0",
@@ -380,7 +367,24 @@
       "status": "queued",
       "pcpErrors": 0,
       "pcpWarnings": 4,
-      "reviewNotes": "BYOM OpenAI-compatible AI router, encrypted key vault, MCP server (hardened input sanitization), and Abilities API integration. Remaining 4 PCP warnings are informational WP 7.0 AIProvider.DirectIntegration advisories for provider endpoints."
+      "reviewNotes": "BYOM OpenAI-compatible AI router, encrypted key vault, hardened MCP server (input type/sanitization/days clamp), and Abilities API integration. Remaining 4 PCP warnings are informational WP 7.0 AIProvider.DirectIntegration advisories."
+    },
+    {
+      "priority": 28,
+      "slug": "gratis-security",
+      "name": "Gratis Security",
+      "version": "2.0.0",
+      "zip": "dist/gratis-security-2.0.0.zip",
+      "repoUrl": "https://github.com/juslintek/gratis-security",
+      "classification": "needs-work",
+      "status": "blocked",
+      "pcpErrors": 0,
+      "pcpWarnings": 0,
+      "blockers": [
+        "Admin UI and FIM status strings across 7 files (Settings.php, FileIntegrity.php, Admin/{Wizard,Malware,Requests,Server,Feeds}Tab.php — 636 Lithuanian diacritic chars) are written in Lithuanian instead of English en_US source strings required by WordPress.org GlotPress.",
+        "15+ @shell_exec() OS probes (systemctl, auditctl, ps, getenforce, git, sha256sum) across FileIntegrity, MalwareScanner, and ServerInspector require WordPress.org manual-review audit or explicit opt-in gating."
+      ],
+      "reviewNotes": "Strong WAF, FIM, malware scanner, and 4 passing self-check suites, but held back from WordPress.org submission until all 7 admin/core files use en_US source strings (with lt_LT translation files) and shell_exec probes are reviewed."
     },
     {
       "priority": 29,
@@ -395,6 +399,7 @@
       "pcpWarnings": 6,
       "blockers": [
         "Legacy 3-char vlt_* prefix across 40+ wp_options, REST namespace (vlt-cache/v1), and AJAX action (vlt_async_worker) requires full prefix migration to gratis_cache_* before WP.org submission.",
+        "Admin UI pages contain hardcoded Lithuanian strings across 17 files instead of en_US source strings.",
         "Defines core SAVEQUERIES and DISABLE_WP_CRON constants inside plugin runtime; dynamic job hook dispatch in AsyncQueue (6 remaining PCP warnings, down from 45)."
       ],
       "reviewNotes": "Removed mcp-for-page-builders/v1 arbitrary file/option write endpoints, removed 3 sslverify=false flags, removed 3 set_time_limit(0) calls with 25s SSE bounds, wrapped global $_vlt_* vars in closure, cached stats queries, and added ABSPATH guards to 59 files."

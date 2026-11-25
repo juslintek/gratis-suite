@@ -23,14 +23,14 @@
  * Exit codes:
  *   0  Success (or dry-run verified)
  *   1  Usage / config / verification error
- *   2  Auth / 2FA / CAPTCHA / unexpected page state (manual action required)
+ *   2  Auth / 2FA / CAPTCHA / detached session / unexpected page state (manual action required)
  *   3  Slot locked (1 pending plugin already awaiting review on WordPress.org)
  */
 
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +38,13 @@ const SUITE_DIR = path.resolve(__dirname, '..');
 const WORKSPACE_DIR = path.resolve(SUITE_DIR, '..');
 const DEFAULT_QUEUE_PATH = path.join(SUITE_DIR, 'docs', 'wporg-queue.json');
 const WPORG_ADD_URL = 'https://wordpress.org/plugins/developers/add/';
+
+class SessionUnavailableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'SessionUnavailableError';
+  }
+}
 
 function printHelp() {
   const src = fs.readFileSync(__filename, 'utf8');
@@ -52,7 +59,7 @@ function printHelp() {
   }
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const opts = {
     mode: null,
     dryRun: false,
@@ -90,18 +97,15 @@ function parseArgs(argv) {
     } else if (arg.startsWith('--comment=')) {
       opts.comment = arg.slice('--comment='.length);
     } else {
-      console.error(`Unknown argument: ${arg}`);
-      process.exit(1);
+      throw new Error(`Unknown argument: ${arg}`);
     }
   }
 
   if (!opts.mode) {
-    console.error('Error: specify --status, --submit-next, or --update-active (see --help).');
-    process.exit(1);
+    throw new Error('Specify --status, --submit-next, or --update-active (see --help).');
   }
   if (opts.mode === 'update-active' && !opts.slug) {
-    console.error('Error: --update-active requires --slug=<plugin-slug>.');
-    process.exit(1);
+    throw new Error('--update-active requires --slug=<plugin-slug>.');
   }
   return opts;
 }
@@ -121,26 +125,31 @@ function runPw(session, args, { raw = false, timeout = 30000 } = {}) {
     }).trim();
   } catch (err) {
     const stderr = (err.stderr || err.stdout || err.message || '').toString().trim();
+    if (/is not open|please run open first|ECONNREFUSED|Target page, context or browser has been closed/i.test(stderr)) {
+      throw new SessionUnavailableError(
+        `Browser session "${session}" is not attached/open. Attach Chrome first: playwright-cli -s=${session} attach --cdp=chrome`
+      );
+    }
     throw new Error(`playwright-cli (${cliArgs.join(' ')}) failed: ${stderr}`);
   }
 }
 
-function loadQueue(queuePath) {
+export function loadQueue(queuePath) {
   if (!fs.existsSync(queuePath)) {
     throw new Error(`Queue manifest not found: ${queuePath}`);
   }
   return JSON.parse(fs.readFileSync(queuePath, 'utf8'));
 }
 
-function saveQueue(queuePath, data) {
+export function saveQueue(queuePath, data) {
   data.updatedAt = new Date().toISOString();
   fs.writeFileSync(queuePath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 
-function verifyZipFile(zipRelOrAbs) {
+export function verifyZipFile(zipRelOrAbs, baseDir = WORKSPACE_DIR) {
   const absPath = path.isAbsolute(zipRelOrAbs)
     ? zipRelOrAbs
-    : path.resolve(WORKSPACE_DIR, zipRelOrAbs);
+    : path.resolve(baseDir, zipRelOrAbs);
   if (!fs.existsSync(absPath)) {
     return { ok: false, path: absPath, reason: 'ZIP file does not exist' };
   }
@@ -160,6 +169,101 @@ function verifyZipFile(zipRelOrAbs) {
     return { ok: false, path: absPath, reason: 'Invalid ZIP header (expected PK\\x03\\x04)' };
   }
   return { ok: true, path: absPath, bytes: stat.size };
+}
+
+/**
+ * Pure classification of inspected WordPress.org submission page DOM snapshot.
+ */
+export function classifyLivePage({ url = '', title = '', text = '', forms = [], hasLoginForm = false, hasCaptchaWidget = false }) {
+  const isLogin = url.includes('login.wordpress.org')
+    || url.includes('wp-login.php')
+    || /you must be logged in|please log in to submit/i.test(text)
+    || Boolean(hasLoginForm);
+
+  const has2fa = /two-factor|authentication code|authenticator app|security key|verify your identity/i.test(text);
+  const hasCaptcha = Boolean(hasCaptchaWidget)
+    || /verify you are human|confirm you are human|complete the captcha/i.test(text);
+
+  const pendingCountMatch = text.match(/Currently there are\s+([\d,]+)\s+plugins awaiting their first review/i);
+  const initialEmailBeforeMatch = text.match(/All new submissions received before\s+(.+?)\s+have been sent/i);
+  const lockMatch = text.match(/You have\s+(\d+)\s+plugin(?:s)?\s+that ha(?:s|ve) been recently submitted but not yet reviewed/i);
+  const slugMatch = text.match(/Current assigned slug:\s*([a-z0-9-]+)/i);
+  const submittedOnMatch = text.match(/Submitted on:\s*([^\n]+)/i);
+  const reviewStatusMatch = text.match(/Review status:\s*([^\n]+)/i);
+  const fileMatch = text.match(/File:\s*([^\s\n]+\.zip)/i);
+  const versionMatch = text.match(/Version:\s*([^\s\n]+)/i);
+  const uploadUpdatedHeading = text.match(/Upload updated\s+["\u201c]([^"\u201d]+)["\u201d]\s+plugin for review/i);
+  const scanPass = /Results of Automated Plugin Scanning:\s*Pass/i.test(text);
+  const scanFail = /Results of Automated Plugin Scanning:\s*Fail|Automated checks? failed|errors? were found/i.test(text);
+
+  const newSubmitForm = forms.find((f) => f.hasFile && f.actionField !== 'upload-additional') || null;
+  const updateForm = forms.find((f) => f.hasFile && f.actionField === 'upload-additional') || null;
+  const slotLocked = Boolean(lockMatch) || (!newSubmitForm && Boolean(updateForm));
+  const slotOpen = Boolean(newSubmitForm) && !lockMatch && !isLogin && !has2fa && !hasCaptcha;
+
+  return {
+    url,
+    title,
+    isLogin,
+    has2fa,
+    hasCaptcha,
+    queueTotalAwaiting: pendingCountMatch ? Number(pendingCountMatch[1].replace(/,/g, '')) : null,
+    initialEmailsBefore: initialEmailBeforeMatch ? initialEmailBeforeMatch[1].trim() : null,
+    slotLocked,
+    lockMessage: lockMatch ? lockMatch[0] : null,
+    pendingPlugin: (slugMatch || uploadUpdatedHeading) ? {
+      name: uploadUpdatedHeading ? uploadUpdatedHeading[1] : null,
+      slug: slugMatch ? slugMatch[1] : null,
+      pluginId: updateForm?.pluginId || null,
+      submittedOn: submittedOnMatch ? submittedOnMatch[1].trim() : null,
+      reviewStatus: reviewStatusMatch ? reviewStatusMatch[1].trim() : null,
+      file: fileMatch ? fileMatch[1].trim() : null,
+      version: versionMatch ? versionMatch[1].trim() : null,
+    } : null,
+    slotOpen,
+    newSubmitForm,
+    updateForm,
+    scanPass,
+    scanFail,
+  };
+}
+
+/**
+ * Pure classification of a post-submit response page.
+ * Avoids false positives from the update form heading ("Upload updated ... plugin for review")
+ * and treats any detected error/auth challenge as failure.
+ */
+export function classifySubmissionResult({ url = '', bodyText = '', notices = [], errorNotices = [] }) {
+  const noticeText = notices.join('\n');
+  const errText = errorNotices.join('\n');
+
+  const authBlocked = url.includes('login.wordpress.org')
+    || url.includes('wp-login.php')
+    || /you must be logged in|two-factor|security key|verify you are human|confirm you are human/i.test(bodyText);
+
+  const hasError = Boolean(errorNotices.length)
+    || /Results of Automated Plugin Scanning:\s*Fail|Automated checks? failed|there was an error|plugin check found|cannot be uploaded|upload failed|error:\s*\S/i.test(noticeText || bodyText)
+    || /error|failed/i.test(errText);
+
+  const scanPass = !hasError && !authBlocked
+    && /Results of Automated Plugin Scanning:\s*Pass/i.test(bodyText);
+
+  // Match real upload confirmation messages (in notices or explicit confirmation prose),
+  // NOT the static form heading "Upload updated 'X' plugin for review".
+  const confirmPattern = /New version of .+ uploaded for review|has been uploaded|successfully uploaded|thank you for uploading|your plugin has been submitted/i;
+  const updatedOk = !hasError && !authBlocked
+    && (confirmPattern.test(noticeText) || confirmPattern.test(bodyText));
+
+  return {
+    url,
+    authBlocked,
+    hasError,
+    scanPass,
+    updatedOk,
+    notices: notices.slice(0, 10),
+    errorNotices: errorNotices.slice(0, 10),
+    excerpt: bodyText.slice(0, 1800),
+  };
 }
 
 function ensureWporgTab(session, reload) {
@@ -194,14 +298,23 @@ function ensureWporgTab(session, reload) {
   return null;
 }
 
-function inspectLivePage(session) {
-  const expr = `JSON.stringify((() => {
-    const url = location.href;
-    const title = document.title;
-    const main = document.querySelector('main') || document.body;
-    const text = (main?.innerText || '').trim();
-    const forms = [...document.querySelectorAll('form')].map((f) => {
-      const inputs = [...f.querySelectorAll('input, textarea, button, select')].map((el) => ({
+export const INSPECT_PAGE_FN = `() => {
+  const url = location.href;
+  const title = document.title;
+  const main = document.querySelector('main') || document.body;
+  const text = (main?.innerText || '').trim();
+  const forms = [...document.querySelectorAll('form')].map((f) => {
+    const inputs = [...f.querySelectorAll('input, textarea, button, select')].map((el) => {
+      let label = el.closest('label')?.innerText || '';
+      if (!label && el.id) {
+        try {
+          const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(el.id) : el.id.replace(/"/g, '\\\\"');
+          label = document.querySelector('label[for="' + escaped + '"]')?.innerText || '';
+        } catch (_) {
+          label = '';
+        }
+      }
+      return {
         tag: el.tagName,
         type: (el.type || '').toLowerCase(),
         name: el.name || '',
@@ -209,82 +322,42 @@ function inspectLivePage(session) {
         value: el.type === 'file' ? '' : String(el.value || '').slice(0, 120),
         required: Boolean(el.required),
         checked: Boolean(el.checked),
-        label: (el.closest('label')?.innerText || document.querySelector('label[for="' + el.id + '"]')?.innerText || '').trim().slice(0, 160),
-      }));
-      return {
-        id: f.id || '',
-        action: f.getAttribute('action') || '',
-        method: (f.method || 'get').toLowerCase(),
-        hasFile: inputs.some((i) => i.type === 'file' && i.name === 'zip_file'),
-        actionField: inputs.find((i) => i.name === 'action')?.value || '',
-        pluginId: inputs.find((i) => i.name === 'plugin_id')?.value || '',
-        checkboxes: inputs.filter((i) => i.type === 'checkbox').map((i) => ({ name: i.name, id: i.id, label: i.label, checked: i.checked })),
-        hasComment: inputs.some((i) => i.name === 'comment'),
-        submitText: inputs.find((i) => i.type === 'submit')?.value || '',
+        label: label.trim().slice(0, 160),
       };
     });
-
-    const isLogin = url.includes('login.wordpress.org')
-      || url.includes('wp-login.php')
-      || /you must be logged in|please log in to submit/i.test(text)
-      || Boolean(document.querySelector('form#loginform'));
-
-    const has2fa = /two-factor|authentication code|authenticator app|security key|verify your identity/i.test(text);
-    const hasCaptcha = Boolean(document.querySelector('iframe[src*="captcha"], iframe[src*="turnstile"], .g-recaptcha, .h-captcha, .cf-turnstile'))
-      || /verify you are human|complete the captcha/i.test(text);
-
-    const pendingCountMatch = text.match(/Currently there are\\s+([\\d,]+)\\s+plugins awaiting their first review/i);
-    const initialEmailBeforeMatch = text.match(/All new submissions received before\\s+(.+?)\\s+have been sent/i);
-    const lockMatch = text.match(/You have\\s+(\\d+)\\s+plugin(?:s)?\\s+that ha(?:s|ve) been recently submitted but not yet reviewed/i);
-    const slugMatch = text.match(/Current assigned slug:\\s*([a-z0-9-]+)/i);
-    const submittedOnMatch = text.match(/Submitted on:\\s*([^\\n]+)/i);
-    const reviewStatusMatch = text.match(/Review status:\\s*([^\\n]+)/i);
-    const fileMatch = text.match(/File:\\s*([^\\s\\n]+\\.zip)/i);
-    const versionMatch = text.match(/Version:\\s*([^\\s\\n]+)/i);
-    const uploadUpdatedHeading = text.match(/Upload updated\\s+[\\x22\\u201c]([^\\x22\\u201d]+)[\\x22\\u201d]\\s+plugin for review/i);
-    const scanPass = /Results of Automated Plugin Scanning:\\s*Pass/i.test(text);
-    const scanFail = /Results of Automated Plugin Scanning:\\s*Fail|Automated checks? failed|errors? were found/i.test(text);
-
-    const newSubmitForm = forms.find((f) => f.hasFile && f.actionField !== 'upload-additional') || null;
-    const updateForm = forms.find((f) => f.hasFile && f.actionField === 'upload-additional') || null;
-
     return {
-      url,
-      title,
-      isLogin,
-      has2fa,
-      hasCaptcha,
-      queueTotalAwaiting: pendingCountMatch ? Number(pendingCountMatch[1].replace(/,/g, '')) : null,
-      initialEmailsBefore: initialEmailBeforeMatch ? initialEmailBeforeMatch[1].trim() : null,
-      slotLocked: Boolean(lockMatch) || (!newSubmitForm && Boolean(updateForm)),
-      lockMessage: lockMatch ? lockMatch[0] : null,
-      pendingPlugin: (slugMatch || uploadUpdatedHeading) ? {
-        name: uploadUpdatedHeading ? uploadUpdatedHeading[1] : null,
-        slug: slugMatch ? slugMatch[1] : null,
-        pluginId: updateForm?.pluginId || null,
-        submittedOn: submittedOnMatch ? submittedOnMatch[1].trim() : null,
-        reviewStatus: reviewStatusMatch ? reviewStatusMatch[1].trim() : null,
-        file: fileMatch ? fileMatch[1].trim() : null,
-        version: versionMatch ? versionMatch[1].trim() : null,
-      } : null,
-      slotOpen: Boolean(newSubmitForm) && !lockMatch && !isLogin && !has2fa && !hasCaptcha,
-      newSubmitForm,
-      updateForm,
-      scanPass,
-      scanFail,
+      id: f.id || '',
+      action: f.getAttribute('action') || '',
+      method: (f.method || 'get').toLowerCase(),
+      hasFile: inputs.some((i) => i.type === 'file' && i.name === 'zip_file'),
+      actionField: inputs.find((i) => i.name === 'action')?.value || '',
+      pluginId: inputs.find((i) => i.name === 'plugin_id')?.value || '',
+      checkboxes: inputs.filter((i) => i.type === 'checkbox').map((i) => ({ name: i.name, id: i.id, label: i.label, checked: i.checked })),
+      hasComment: inputs.some((i) => i.name === 'comment'),
+      submitText: inputs.find((i) => i.type === 'submit')?.value || '',
     };
-  })())`;
+  });
+  return {
+    url,
+    title,
+    text,
+    forms,
+    hasLoginForm: Boolean(document.querySelector('form#loginform')),
+    hasCaptchaWidget: Boolean(document.querySelector('iframe[src*="captcha"], iframe[src*="turnstile"], .g-recaptcha, .h-captcha, .cf-turnstile')),
+  };
+}`;
 
+function inspectLivePage(session) {
+  const expr = `JSON.stringify((${INSPECT_PAGE_FN})())`;
   const rawOut = runPw(session, ['eval', expr], { raw: true });
-  // playwright-cli --raw eval wraps JSON string result in JSON quotes; unwrap once or twice.
   let parsed = JSON.parse(rawOut);
   if (typeof parsed === 'string') {
     parsed = JSON.parse(parsed);
   }
-  return parsed;
+  return classifyLivePage(parsed);
 }
 
-function selectNextEligible(queue, requestedSlug) {
+export function selectNextEligible(queue, requestedSlug) {
   const ready = queue.plugins.filter((p) => p.classification === 'production-ready');
   if (requestedSlug) {
     const found = queue.plugins.find((p) => p.slug === requestedSlug);
@@ -294,12 +367,15 @@ function selectNextEligible(queue, requestedSlug) {
     if (found.classification !== 'production-ready') {
       throw new Error(`Slug "${requestedSlug}" is classified as "${found.classification}", not "production-ready". Refusing to submit.`);
     }
+    if (found.status !== 'queued') {
+      throw new Error(`Slug "${requestedSlug}" already has status "${found.status}", not "queued". Use --update-active to refresh an active submission.`);
+    }
     return found;
   }
   return ready.find((p) => p.status === 'queued') || null;
 }
 
-function summarizeQueue(queue) {
+export function summarizeQueue(queue) {
   const counts = {
     total: queue.plugins.length,
     productionReady: 0,
@@ -321,7 +397,7 @@ function summarizeQueue(queue) {
   return counts;
 }
 
-function formatStatusReport(live, queue, nextPlugin, nextZip) {
+export function formatStatusReport(live, queue, nextPlugin, nextZip) {
   const counts = summarizeQueue(queue);
   const lines = [];
   lines.push('=== WordPress.org Plugin Directory Status ===');
@@ -374,8 +450,67 @@ function formatStatusReport(live, queue, nextPlugin, nextZip) {
   return lines.join('\n');
 }
 
+export async function runSubmissionInPage(page, { mode, zipPath, comment }) {
+  const formSelector = mode === 'update-active'
+    ? 'form:has(input[name="action"][value="upload-additional"])'
+    : 'form:has(input[type="file"][name="zip_file"]):not(:has(input[name="action"][value="upload-additional"]))';
+  const form = page.locator(formSelector).first();
+  if (mode === 'update-active' && !(await form.isVisible())) {
+    const toggle = page.locator('a, button').filter({ hasText: /Upload updated .* plugin for review/i }).first();
+    if (await toggle.count()) {
+      await toggle.click();
+    }
+  }
+  await form.waitFor({ state: 'visible', timeout: 10000 });
+
+  const fileInput = form.locator('input[type="file"][name="zip_file"]');
+  await fileInput.setInputFiles(zipPath);
+
+  if (mode === 'submit-next') {
+    const boxes = form.locator('input[type="checkbox"]');
+    const count = await boxes.count();
+    for (let i = 0; i < count; i++) {
+      const box = boxes.nth(i);
+      if (!(await box.isChecked())) {
+        await box.check();
+      }
+    }
+  }
+
+  if (comment) {
+    const textarea = form.locator('textarea[name="comment"]');
+    if (await textarea.count()) {
+      await textarea.fill(comment);
+    }
+  }
+
+  const submitBtn = form.locator('input[type="submit"], button[type="submit"]').first();
+  await Promise.all([
+    page.waitForLoadState('domcontentloaded', { timeout: 60000 }),
+    submitBtn.click(),
+  ]);
+  await page.waitForTimeout(1500);
+
+  const snapshot = await page.evaluate(() => {
+    const main = document.querySelector('main') || document.body;
+    const notices = [...document.querySelectorAll('.notice, .plugin-notice, .wp-block-wporg-notice, [class*="notice"]')]
+      .map((e) => e.innerText.trim())
+      .filter(Boolean);
+    const errorNotices = [...document.querySelectorAll('.notice-error, .plugin-notice-error, .is-error, [class*="notice-error"], [class*="error-notice"]')]
+      .map((e) => e.innerText.trim())
+      .filter(Boolean);
+    return {
+      url: location.href,
+      bodyText: (main?.innerText || '').trim(),
+      notices,
+      errorNotices,
+    };
+  });
+
+  return classifySubmissionResult(snapshot);
+}
+
 function submitViaForm(session, { mode, zipPath, comment, pluginId }) {
-  // Use playwright-cli run-code so file upload uses Playwright's real setInputFiles API.
   const payload = JSON.stringify({ mode, zipPath, comment, pluginId });
   const code = `async (page) => {
     const cfg = ${payload};
@@ -419,16 +554,22 @@ function submitViaForm(session, { mode, zipPath, comment, pluginId }) {
     ]);
     await page.waitForTimeout(1500);
 
-    const bodyText = await page.evaluate(() => (document.querySelector('main') || document.body).innerText);
-    const notices = await page.evaluate(() => [...document.querySelectorAll('.notice, .plugin-notice, .wp-block-wporg-notice, [class*="notice"]')].map((e) => e.innerText.trim()).filter(Boolean));
-    return JSON.stringify({
-      url: page.url(),
-      scanPass: /Results of Automated Plugin Scanning:\\s*Pass/i.test(bodyText),
-      updatedOk: /has been uploaded|successfully uploaded|uploaded for review|thank you for uploading/i.test(bodyText),
-      hasError: /error:|there was an error|plugin check found|failed/i.test(bodyText),
-      notices: notices.slice(0, 10),
-      excerpt: bodyText.slice(0, 1800),
+    const main = await page.evaluate(() => {
+      const root = document.querySelector('main') || document.body;
+      const notices = [...document.querySelectorAll('.notice, .plugin-notice, .wp-block-wporg-notice, [class*="notice"]')]
+        .map((e) => e.innerText.trim())
+        .filter(Boolean);
+      const errorNotices = [...document.querySelectorAll('.notice-error, .plugin-notice-error, .is-error, [class*="notice-error"], [class*="error-notice"]')]
+        .map((e) => e.innerText.trim())
+        .filter(Boolean);
+      return {
+        url: location.href,
+        bodyText: (root?.innerText || '').trim(),
+        notices,
+        errorNotices,
+      };
     });
+    return JSON.stringify(main);
   }`;
 
   const rawOut = runPw(session, ['run-code', code], { raw: true, timeout: 90000 });
@@ -436,7 +577,7 @@ function submitViaForm(session, { mode, zipPath, comment, pluginId }) {
   if (typeof parsed === 'string') {
     parsed = JSON.parse(parsed);
   }
-  return parsed;
+  return classifySubmissionResult(parsed);
 }
 
 function main() {
@@ -515,21 +656,25 @@ function main() {
       pluginId: live.updateForm.pluginId,
     });
 
-    target.lastUpdatedUploadAt = new Date().toISOString();
-    target.lastUploadResult = res.scanPass ? 'scan-pass' : (res.updatedOk ? 'uploaded' : 'check-output');
-    target.lastUploadNotes = comment;
-    saveQueue(opts.queuePath, queue);
+    const ok = !res.hasError && !res.authBlocked && (res.scanPass || res.updatedOk);
+    if (ok) {
+      target.lastUpdatedUploadAt = new Date().toISOString();
+      target.lastUploadResult = res.scanPass ? 'scan-pass' : 'uploaded';
+      target.lastUploadNotes = comment;
+      saveQueue(opts.queuePath, queue);
+    }
 
     if (opts.json) {
       console.log(JSON.stringify(res, null, 2));
     } else {
-      console.log(`Uploaded updated ZIP for ${target.slug}: ${zipCheck.path}`);
-      console.log(`Scan Pass Detected: ${res.scanPass ? 'YES' : 'NO'} | Upload Confirmation: ${res.updatedOk ? 'YES' : 'NO'}`);
+      console.log(`Updated ZIP attempt for ${target.slug}: ${zipCheck.path}`);
+      console.log(`Scan Pass: ${res.scanPass ? 'YES' : 'NO'} | Upload Confirmation: ${res.updatedOk ? 'YES' : 'NO'} | Error: ${res.hasError ? 'YES' : 'NO'}`);
       if (res.notices.length) {
         console.log('Notices:\n  - ' + res.notices.join('\n  - '));
       }
     }
-    process.exit(res.scanPass || res.updatedOk ? 0 : 1);
+    if (res.authBlocked) process.exit(2);
+    process.exit(ok ? 0 : 1);
   }
 
   // --submit-next flow
@@ -545,7 +690,7 @@ function main() {
     process.exit(1);
   }
 
-  if (live.slotLocked || !live.slotOpen) {
+  if (live.slotLocked) {
     const payload = {
       mode: 'submit-next',
       dryRun: opts.dryRun,
@@ -573,6 +718,23 @@ function main() {
       console.log('  Re-run this command once WordPress.org approves the active review and unlocks the slot.');
     }
     process.exit(opts.dryRun ? 0 : 3);
+  }
+
+  if (!live.slotOpen) {
+    const payload = {
+      mode: 'submit-next',
+      dryRun: opts.dryRun,
+      canSubmit: false,
+      reason: 'unexpected-page-state',
+      url: live.url,
+      title: live.title,
+    };
+    if (opts.json) {
+      console.log(JSON.stringify(payload, null, 2));
+    } else {
+      console.error(`STOP: Unexpected WordPress.org page state at ${live.url} — neither new-plugin form nor 1-pending-plugin lock was detected.`);
+    }
+    process.exit(2);
   }
 
   const comment = opts.comment || `Public repository: ${nextPlugin.repoUrl} — GPL-2.0-or-later, verified with official Plugin Check (${nextPlugin.pcpErrors} errors, ${nextPlugin.pcpWarnings} warnings).`;
@@ -603,7 +765,12 @@ function main() {
     comment,
   });
 
-  if (res.scanPass) {
+  if (res.authBlocked) {
+    console.error('STOP: Auth / 2FA / CAPTCHA challenge appeared during submission. Complete it manually in Chrome.');
+    process.exit(2);
+  }
+
+  if (res.scanPass && !res.hasError) {
     nextPlugin.status = 'awaiting-review';
     nextPlugin.submittedAt = new Date().toISOString();
     nextPlugin.scanResult = 'Pass';
@@ -616,15 +783,22 @@ function main() {
     }
     process.exit(0);
   } else {
-    console.error(`WARNING: Submission completed for ${nextPlugin.slug}, but "Results of Automated Plugin Scanning: Pass" was NOT confirmed.`);
+    console.error(`WARNING: Submission completed for ${nextPlugin.slug}, but "Results of Automated Plugin Scanning: Pass" was NOT confirmed cleanly.`);
     console.error(JSON.stringify(res, null, 2));
     process.exit(1);
   }
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
-  process.exit(1);
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (isDirectRun) {
+  try {
+    main();
+  } catch (err) {
+    if (err instanceof SessionUnavailableError) {
+      console.error(`STOP: ${err.message}`);
+      process.exit(2);
+    }
+    console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
 }
